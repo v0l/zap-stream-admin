@@ -1,7 +1,7 @@
 import { LoginSession, LoginStore } from "../types/login";
 import { EventSigner, Nip7Signer } from "@snort/system";
 import { EventEmitter } from "eventemitter3";
-import { useSyncExternalStore, useState, useCallback } from "react";
+import { useSyncExternalStore, useState, useCallback, useEffect } from "react";
 import { AdminAPI } from "./api";
 
 class LoginStoreImpl extends EventEmitter implements LoginStore {
@@ -103,8 +103,32 @@ export function useLogin() {
   const session = useLoginStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isNip07Supported, setIsNip07Supported] = useState(false);
 
-  const isNip07Supported = typeof window !== "undefined" && !!window.nostr;
+  // Check for NIP-07 support after window loads and periodically
+  useEffect(() => {
+    const checkNip07Support = () => {
+      const supported = typeof window !== "undefined" && !!window.nostr;
+      setIsNip07Supported(supported);
+    };
+
+    // Initial check
+    checkNip07Support();
+
+    // Check again after a short delay for late-loading extensions
+    const timeoutId = setTimeout(checkNip07Support, 1000);
+
+    // Also check on window load if not already loaded
+    if (document.readyState === 'loading') {
+      window.addEventListener('load', checkNip07Support);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('load', checkNip07Support);
+    };
+  }, []);
+
   const isAuthenticated = loginStore.hasSession;
   const publicKey = loginStore.publicKey;
 

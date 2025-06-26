@@ -1,7 +1,7 @@
 import { EventSigner, EventBuilder } from "@snort/system";
 
 const API_BASE_URL =
-  (import.meta as any).env.VITE_API_BASE_URL || "https://api.zap.stream";
+  (import.meta as any).env.VITE_API_BASE_URL || "https://api.core.zap.stream";
 
 export interface User {
   id: number;
