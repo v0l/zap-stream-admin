@@ -237,13 +237,26 @@ export const UserInspectPage: React.FC = () => {
       field: "duration",
       headerName: "Duration",
       width: 100,
-      renderCell: (params) => (
-        <Box display="flex" alignItems="center" height="100%">
-          <Typography variant="body2">
-            {formatDuration(params.value)}
-          </Typography>
-        </Box>
-      ),
+      renderCell: (params) => {
+        const stream = params.row as Stream;
+        let duration: number;
+        
+        if (stream.state === "ended" && stream.ends) {
+          duration = stream.ends - stream.starts;
+        } else if (stream.state === "live") {
+          duration = Math.floor(Date.now() / 1000) - stream.starts;
+        } else {
+          duration = params.value;
+        }
+        
+        return (
+          <Box display="flex" alignItems="center" height="100%">
+            <Typography variant="body2">
+              {formatDuration(duration)}
+            </Typography>
+          </Box>
+        );
+      },
     },
     {
       field: "cost",
