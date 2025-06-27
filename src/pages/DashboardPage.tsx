@@ -3,14 +3,17 @@ import {
   Container,
   Typography,
   Box,
-  Grid,
   Paper,
-  Card,
-  CardContent,
 } from "@mui/material";
-import { PeopleAlt, Security, TrendingUp, Settings } from "@mui/icons-material";
+import { useLogin } from "../services/login";
+import { useWebSocket } from "../hooks/useWebSocket";
+import { SystemMetrics } from "../components/SystemMetrics";
+import { StreamList } from "../components/StreamList";
 
 export const DashboardPage: React.FC = () => {
+  const { signer } = useLogin();
+  const { metrics, streams, isConnected, isAdmin, error } = useWebSocket(signer || null);
+
   return (
     <Container maxWidth="xl" sx={{ mt: 3 }}>
       <Box mb={4}>
@@ -18,91 +21,44 @@ export const DashboardPage: React.FC = () => {
           Admin Dashboard
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Welcome to the zap.stream admin panel
+          Real-time system monitoring and stream management
         </Typography>
       </Box>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
-                <PeopleAlt color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Users</Typography>
-              </Box>
-              <Typography variant="h4" color="primary">
-                -
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total registered users
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
-                <Security color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Admins</Typography>
-              </Box>
-              <Typography variant="h4" color="primary">
-                -
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Active admin accounts
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
-                <TrendingUp color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Activity</Typography>
-              </Box>
-              <Typography variant="h4" color="primary">
-                -
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Recent activity
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={2}>
-                <Settings color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">System</Typography>
-              </Box>
-              <Typography variant="h4" color="primary">
-                ✓
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                System status
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      <Box mt={4}>
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Quick Actions
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Use the navigation menu to access user management, system settings,
-            and other admin functions.
-          </Typography>
-        </Paper>
+      {/* System Metrics Overview */}
+      <Box mb={3}>
+        <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
+          System Overview
+        </Typography>
+        <SystemMetrics
+          metrics={metrics}
+        />
       </Box>
+
+      {/* Active Streams */}
+      <Box mb={3}>
+        <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
+          Live Streams
+        </Typography>
+        <StreamList
+          streams={streams}
+          isConnected={isConnected}
+        />
+      </Box>
+
+      {/* Connection Status and Errors */}
+      {error && (
+        <Box mb={4}>
+          <Paper sx={{ p: 3, bgcolor: "error.light", color: "error.contrastText" }}>
+            <Typography variant="h6" gutterBottom>
+              Connection Error
+            </Typography>
+            <Typography variant="body2">
+              {error}
+            </Typography>
+          </Paper>
+        </Box>
+      )}
     </Container>
   );
 };

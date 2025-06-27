@@ -1,10 +1,10 @@
-import { LoginSession, LoginStore } from "../types/login";
+import { LoginSession } from "../types/login";
 import { EventSigner, Nip7Signer } from "@snort/system";
 import { EventEmitter } from "eventemitter3";
 import { useSyncExternalStore, useState, useCallback, useEffect } from "react";
 import { AdminAPI } from "./api";
 
-class LoginStoreImpl extends EventEmitter implements LoginStore {
+class LoginStoreImpl extends EventEmitter {
   private _session: LoginSession | undefined;
   private _signer: EventSigner | undefined;
 
@@ -79,7 +79,7 @@ class LoginStoreImpl extends EventEmitter implements LoginStore {
     this.emit("change");
   }
 
-  async getSigner(): Promise<EventSigner | undefined> {
+  getSigner(): EventSigner | undefined {
     if (!this._signer && this._session) {
       switch (this._session.type) {
         case "nip7":
@@ -131,12 +131,12 @@ export function useLogin() {
 
   const isAuthenticated = loginStore.hasSession;
   const publicKey = loginStore.publicKey;
+  const signer = loginStore.getSigner();
 
   const getAdminAPI = useCallback(async (): Promise<AdminAPI | null> => {
-    if (!session) return null;
-    const signer = await loginStore.getSigner();
-    return new AdminAPI(signer!);
-  }, [session]);
+    if (!signer) return null;
+    return new AdminAPI(signer);
+  }, [signer]);
 
   const loginWithNip07 = async () => {
     if (!isNip07Supported) {
@@ -184,5 +184,6 @@ export function useLogin() {
     error,
     isNip07Supported,
     getAdminAPI,
+    signer
   };
 }
