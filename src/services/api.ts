@@ -1,4 +1,5 @@
 import { EventSigner, EventBuilder } from "@snort/system";
+import { CreateAuditLogRequest } from "../types/audit";
 
 const API_BASE_URL =
   (import.meta as any).env.VITE_API_BASE_URL || "https://api.core.zap.stream";
@@ -247,7 +248,23 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // Add audit log for stream key regeneration
+    try {
+      await this.createAuditLog({
+        action: "STREAM_KEY_REGENERATED",
+        target_user_id: userId,
+        details: {
+          method: "regenerate_stream_key"
+        }
+      });
+    } catch (auditError) {
+      // Don't fail the main operation if audit logging fails
+      console.error("Failed to create audit log:", auditError);
+    }
+
+    return result;
   }
 
   async getStreamKey(userId: number): Promise<{ stream_key: string }> {
@@ -263,6 +280,37 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // Add audit log for stream key access
+    try {
+      await this.createAuditLog({
+        action: "STREAM_KEY_VIEWED",
+        target_user_id: userId,
+        details: {
+          method: "get_stream_key"
+        }
+      });
+    } catch (auditError) {
+      // Don't fail the main operation if audit logging fails
+      console.error("Failed to create audit log:", auditError);
+    }
+
+    return result;
+  }
+
+  async createAuditLog(auditData: CreateAuditLogRequest): Promise<void> {
+    const url = `${this.baseURL}/audit-log`;
+    const headers = await this.getHeaders(url, "POST");
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(auditData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
   }
 }
