@@ -14,6 +14,7 @@ import {
   Dashboard as DashboardIcon,
   PeopleAlt as UsersIcon,
   AccountCircle,
+  History as HistoryIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLogin } from "../services/login";
@@ -51,6 +52,7 @@ export const Navigation: React.FC = () => {
   const menuItems = [
     { path: "/", label: "Dashboard", icon: <DashboardIcon /> },
     { path: "/users", label: "Users", icon: <UsersIcon /> },
+    { path: "/audit-log", label: "Audit Log", icon: <HistoryIcon /> },
   ];
 
   // Create a minimal User object for the logged-in user

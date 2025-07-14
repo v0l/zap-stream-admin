@@ -74,6 +74,24 @@ export interface HistoryResponse {
   page_size: number;
 }
 
+export interface AuditLogEntry {
+  id: number;
+  admin_id: number;
+  action: string;
+  target_type: string;
+  target_id: string;
+  message: string;
+  metadata: string;
+  created: number;
+}
+
+export interface AuditLogResponse {
+  logs: AuditLogEntry[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
 export class AdminAPI {
   private baseURL: string;
   private eventSigner: EventSigner;
@@ -252,6 +270,30 @@ export class AdminAPI {
 
   async getStreamKey(userId: number): Promise<{ stream_key: string }> {
     const url = `${this.baseURL}/users/${userId}/stream-key`;
+    const headers = await this.getHeaders(url, "GET");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async getAuditLogs(
+    page = 0,
+    limit = 50,
+  ): Promise<AuditLogResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    const url = `${this.baseURL}/audit-log?${params}`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
