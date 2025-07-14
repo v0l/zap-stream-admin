@@ -77,9 +77,11 @@ export interface HistoryResponse {
 export interface AuditLogEntry {
   id: number;
   admin_id: number;
+  admin_pubkey: string;
   action: string;
   target_type: string;
   target_id: string;
+  target_pubkey?: string;
   message: string;
   metadata: string;
   created: number;
