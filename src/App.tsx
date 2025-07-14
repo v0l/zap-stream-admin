@@ -10,7 +10,6 @@ import { Navigation } from "./components/Navigation";
 import { DashboardPage } from "./pages/DashboardPage";
 import { UsersPage } from "./pages/UsersPage";
 import { UserInspectPage } from "./pages/UserInspectPage";
-import { StreamKeyDemo } from "./StreamKeyDemo";
 
 // Create Nostr system instance
 const system = new NostrSystem({});
@@ -30,7 +29,6 @@ const AdminDashboard: React.FC = () => {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/users/:userId" element={<UserInspectPage />} />
-        <Route path="/demo" element={<StreamKeyDemo />} />
       </Routes>
     </Box>
   );
@@ -38,11 +36,6 @@ const AdminDashboard: React.FC = () => {
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useLogin();
-
-  // Check if we're on the demo route and bypass authentication
-  if (window.location.pathname === '/demo') {
-    return <StreamKeyDemo />;
-  }
 
   if (isLoading) {
     return (
