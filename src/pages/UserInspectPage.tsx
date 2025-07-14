@@ -22,6 +22,7 @@ import {
 import { UserProfile } from "../components/UserProfile";
 import { UserManagementModal } from "../components/UserManagementModal";
 import { BalanceModal } from "../components/BalanceModal";
+import { MilliSatsDisplay } from "../components/MilliSatsDisplay";
 import { User, Stream } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
 import { useLogin } from "../services/login";
@@ -187,10 +188,6 @@ export const UserInspectPage: React.FC = () => {
     return `${minutes}m`;
   };
 
-  const formatCost = (cost: number) => {
-    return Math.ceil(cost / 1000).toLocaleString() + " sats";
-  };
-
   const columns: GridColDef[] = [
     {
       field: "title",
@@ -264,9 +261,11 @@ export const UserInspectPage: React.FC = () => {
       width: 120,
       renderCell: (params) => (
         <Box display="flex" alignItems="center" height="100%">
-          <Typography variant="body2" color="warning.main">
-            {formatCost(params.value)}
-          </Typography>
+          <MilliSatsDisplay 
+            milliSats={params.value} 
+            color="warning.main"
+            variant="body2"
+          />
         </Box>
       ),
     },
@@ -379,9 +378,11 @@ export const UserInspectPage: React.FC = () => {
             <Typography variant="subtitle2" color="text.secondary">
               Current Balance
             </Typography>
-            <Typography variant="body1" color="success.main">
-              {(user.balance / 1000).toLocaleString()} sats
-            </Typography>
+            <MilliSatsDisplay 
+              milliSats={user.balance} 
+              color="success.main"
+              variant="body1"
+            />
           </Box>
           <Box flex="1" minWidth="200px">
             <Typography variant="subtitle2" color="text.secondary">

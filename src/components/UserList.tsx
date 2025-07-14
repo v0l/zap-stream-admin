@@ -31,6 +31,7 @@ import { User } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
 import { useLogin } from "../services/login";
 import { UserProfile } from "./UserProfile";
+import { MilliSatsDisplay } from "./MilliSatsDisplay";
 
 interface UserListProps {
   onEditUser: (user: User) => void;
@@ -84,10 +85,6 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
       refresh: loadUsers,
     }));
 
-    const formatBalance = (balance: number) => {
-      return (balance / 1000).toLocaleString() + " sats";
-    };
-
     const formatDate = (timestamp: number) => {
       return formatDistanceToNow(new Date(timestamp * 1000), {
         addSuffix: true,
@@ -123,9 +120,11 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
         type: "number",
         renderCell: (params) => (
           <Box display="flex" alignItems="center" height="100%">
-            <Typography variant="body2" color="success.main">
-              {formatBalance(params.value)}
-            </Typography>
+            <MilliSatsDisplay 
+              milliSats={params.value} 
+              color="success.main"
+              variant="body2"
+            />
           </Box>
         ),
       },

@@ -26,6 +26,7 @@ import { User } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
 import { useLogin } from "../services/login";
 import { UserProfile } from "./UserProfile";
+import { MilliSatsDisplay } from "./MilliSatsDisplay";
 
 interface UserManagementModalProps {
   user: User | null;
@@ -78,10 +79,6 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
     }
     setError(null);
   }, [user, open]);
-
-  const formatBalance = (balance: number) => {
-    return (balance / 1000).toLocaleString() + " sats";
-  };
 
   const loadStreamKey = async () => {
     if (!user) return;
@@ -233,7 +230,11 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
           <Box display="flex" flexWrap="wrap" gap={3}>
             <Box flex="1" minWidth="200px">
               <Typography variant="body2">
-                <strong>Balance:</strong> {formatBalance(user.balance)}
+                <strong>Balance:</strong>{" "}
+                <MilliSatsDisplay 
+                  milliSats={user.balance} 
+                  variant="body2"
+                />
               </Typography>
             </Box>
             <Box flex="1" minWidth="200px">

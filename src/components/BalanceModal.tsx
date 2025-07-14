@@ -24,6 +24,7 @@ import { User, HistoryItem } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
 import { useLogin } from "../services/login";
 import { UserProfile } from "./UserProfile";
+import { MilliSatsDisplay } from "./MilliSatsDisplay";
 
 interface BalanceModalProps {
   user: User | null;
@@ -92,10 +93,6 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
       loadHistory();
     }
   }, [activeTab, paginationModel]);
-
-  const formatBalance = (balance: number) => {
-    return (balance / 1000).toLocaleString() + " sats";
-  };
 
   const handleAddCredits = async () => {
     if (!user || !creditAmount || parseFloat(creditAmount) <= 0) return;
@@ -189,9 +186,11 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
           <Typography variant="subtitle2" color="text.secondary">
             Current Balance
           </Typography>
-          <Typography variant="h4" color="success.main">
-            {formatBalance(user.balance)}
-          </Typography>
+          <MilliSatsDisplay 
+            milliSats={user.balance} 
+            color="success.main"
+            variant="h4"
+          />
         </Box>
         <Box>
           <Tabs
