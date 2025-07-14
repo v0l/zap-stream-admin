@@ -13,6 +13,7 @@ export interface User {
   tos_accepted: number | null;
   title: string;
   summary: string;
+  stream_key?: string;
 }
 
 export interface UsersResponse {
@@ -219,6 +220,38 @@ export class AdminAPI {
     limit = 25,
   ): Promise<HistoryResponse> {
     const url = `${this.baseURL}/users/${userId}/history?page=${page}&limit=${limit}`;
+    const headers = await this.getHeaders(url, "GET");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async regenerateStreamKey(userId: number): Promise<{ stream_key: string }> {
+    const url = `${this.baseURL}/users/${userId}/stream-key/regenerate`;
+    const headers = await this.getHeaders(url, "POST");
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async getStreamKey(userId: number): Promise<{ stream_key: string }> {
+    const url = `${this.baseURL}/users/${userId}/stream-key`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
