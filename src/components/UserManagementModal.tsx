@@ -12,7 +12,16 @@ import {
   Typography,
   Divider,
   Alert,
+  IconButton,
+  Tooltip,
+  InputAdornment,
 } from "@mui/material";
+import {
+  ContentCopy as CopyIcon,
+  Refresh as RefreshIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+} from "@mui/icons-material";
 import { User } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
 import { useLogin } from "../services/login";
@@ -35,6 +44,12 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Stream key state
+  const [streamKey, setStreamKey] = useState<string | null>(null);
+  const [streamKeyVisible, setStreamKeyVisible] = useState(false);
+  const [streamKeyLoading, setStreamKeyLoading] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
   // Form state
   const [isAdmin, setIsAdmin] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
@@ -55,12 +70,68 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
       setTags("");
       setContentWarning("");
       setGoal("");
+      setStreamKey(user.stream_key || null);
+      setStreamKeyVisible(false);
+      setCopySuccess(false);
     }
     setError(null);
   }, [user, open]);
 
   const formatBalance = (balance: number) => {
     return (balance / 1000).toLocaleString() + " sats";
+  };
+
+  const loadStreamKey = async () => {
+    if (!user) return;
+
+    try {
+      setStreamKeyLoading(true);
+      const adminAPI = await getAdminAPI();
+      if (adminAPI) {
+        const response = await adminAPI.getStreamKey(user.id);
+        setStreamKey(response.stream_key);
+      }
+    } catch (err: any) {
+      console.error("Failed to load stream key:", err);
+      // Don't show error for stream key loading failure
+    } finally {
+      setStreamKeyLoading(false);
+    }
+  };
+
+  const regenerateStreamKey = async () => {
+    if (!user) return;
+
+    try {
+      setStreamKeyLoading(true);
+      const adminAPI = await getAdminAPI();
+      if (adminAPI) {
+        const response = await adminAPI.regenerateStreamKey(user.id);
+        setStreamKey(response.stream_key);
+        setStreamKeyVisible(true); // Show the new key
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Failed to regenerate stream key");
+    } finally {
+      setStreamKeyLoading(false);
+    }
+  };
+
+  const copyStreamKey = async () => {
+    if (!streamKey) return;
+
+    try {
+      await navigator.clipboard.writeText(streamKey);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy stream key:", err);
+    }
+  };
+
+  const maskStreamKey = (key: string) => {
+    if (key.length <= 8) return key;
+    return key.substring(0, 8) + "•".repeat(key.length - 12) + key.substring(key.length - 4);
   };
 
   const handleSave = async () => {
@@ -211,6 +282,78 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                 label="Block User"
               />
             </Box>
+          </Box>
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* Stream Key Management */}
+        <Box mb={3}>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Stream Key Management
+          </Typography>
+          <Box>
+            <TextField
+              fullWidth
+              label="Stream Key"
+              value={streamKey ? (streamKeyVisible ? streamKey : maskStreamKey(streamKey)) : ""}
+              placeholder={streamKey ? "" : "Click Load to fetch stream key"}
+              InputProps={{
+                readOnly: true,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Box display="flex" gap={0.5}>
+                      {streamKey && (
+                        <>
+                          <Tooltip title={streamKeyVisible ? "Hide key" : "Show key"}>
+                            <IconButton
+                              onClick={() => setStreamKeyVisible(!streamKeyVisible)}
+                              size="small"
+                            >
+                              {streamKeyVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={copySuccess ? "Copied!" : "Copy to clipboard"}>
+                            <IconButton
+                              onClick={copyStreamKey}
+                              size="small"
+                              color={copySuccess ? "success" : "default"}
+                            >
+                              <CopyIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                      <Tooltip title="Regenerate stream key">
+                        <IconButton
+                          onClick={regenerateStreamKey}
+                          size="small"
+                          disabled={streamKeyLoading}
+                        >
+                          <RefreshIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </InputAdornment>
+                ),
+              }}
+              disabled={streamKeyLoading}
+              helperText={
+                streamKey
+                  ? "Click the eye icon to show/hide the full key"
+                  : "Click the refresh icon to load or generate the stream key"
+              }
+            />
+            {!streamKey && !streamKeyLoading && (
+              <Button
+                onClick={loadStreamKey}
+                variant="outlined"
+                size="small"
+                sx={{ mt: 1 }}
+              >
+                Load Stream Key
+              </Button>
+            )}
           </Box>
         </Box>
 
