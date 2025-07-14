@@ -25,11 +25,25 @@ import {
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { useLogin } from "../services/login";
-import { AdminAPI, AuditLogEntry } from "../services/api";
+import { AdminAPI, AuditLogEntry, User } from "../services/api";
+import { UserProfile } from "../components/UserProfile";
 
 interface ExpandableRowProps {
   entry: AuditLogEntry;
 }
+
+// Helper function to create a minimal User object from a pubkey
+const createUserFromPubkey = (pubkey: string): User => ({
+  id: 0, // Not needed for profile display
+  pubkey,
+  created: 0, // Not needed for profile display
+  balance: 0, // Not needed for profile display
+  is_admin: false, // Not needed for audit log display
+  is_blocked: false, // Not needed for audit log display
+  tos_accepted: null, // Not needed for profile display
+  title: "", // Not needed for profile display
+  summary: "", // Not needed for profile display
+});
 
 const ExpandableRow: React.FC<ExpandableRowProps> = ({ entry }) => {
   const [expanded, setExpanded] = useState(false);
@@ -81,11 +95,11 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ entry }) => {
         </TableCell>
         <TableCell>{entry.id}</TableCell>
         <TableCell>
-          <Tooltip title={`Admin ID: ${entry.admin_id}`}>
-            <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-              {entry.admin_id}
-            </Typography>
-          </Tooltip>
+          <UserProfile 
+            user={createUserFromPubkey(entry.admin_pubkey)} 
+            size="small"
+            showCopyButton={true}
+          />
         </TableCell>
         <TableCell>
           <Chip
@@ -98,9 +112,17 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ entry }) => {
           <Typography variant="body2" color="text.secondary">
             {entry.target_type}
           </Typography>
-          <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
-            {entry.target_id}
-          </Typography>
+          {entry.target_pubkey ? (
+            <UserProfile 
+              user={createUserFromPubkey(entry.target_pubkey)} 
+              size="small"
+              showCopyButton={true}
+            />
+          ) : (
+            <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
+              {entry.target_id}
+            </Typography>
+          )}
         </TableCell>
         <TableCell>{entry.message}</TableCell>
         <TableCell>
