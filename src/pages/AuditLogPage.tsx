@@ -120,7 +120,7 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ entry }) => {
                 <Typography variant="h6" gutterBottom component="div">
                   Metadata
                 </Typography>
-                <Paper sx={{ p: 2, bgcolor: "grey.100" }}>
+                <Paper sx={{ p: 2, bgcolor: "background.default" }}>
                   <Typography
                     variant="body2"
                     component="pre"
@@ -129,6 +129,7 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ entry }) => {
                       fontSize: "0.8rem",
                       overflow: "auto",
                       whiteSpace: "pre-wrap",
+                      color: "text.primary",
                     }}
                   >
                     {formatMetadata(entry.metadata)}
