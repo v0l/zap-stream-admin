@@ -49,6 +49,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   const [streamKeyVisible, setStreamKeyVisible] = useState(false);
   const [streamKeyLoading, setStreamKeyLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [confirmRegenerateOpen, setConfirmRegenerateOpen] = useState(false);
 
   // Form state
   const [isAdmin, setIsAdmin] = useState(false);
@@ -73,6 +74,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
       setStreamKey(user.stream_key || null);
       setStreamKeyVisible(false);
       setCopySuccess(false);
+      setConfirmRegenerateOpen(false);
     }
     setError(null);
   }, [user, open]);
@@ -97,6 +99,11 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
     } finally {
       setStreamKeyLoading(false);
     }
+  };
+
+  const confirmRegenerateStreamKey = async () => {
+    setConfirmRegenerateOpen(false);
+    await regenerateStreamKey();
   };
 
   const regenerateStreamKey = async () => {
@@ -326,7 +333,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                       )}
                       <Tooltip title="Regenerate stream key">
                         <IconButton
-                          onClick={regenerateStreamKey}
+                          onClick={() => setConfirmRegenerateOpen(true)}
                           size="small"
                           disabled={streamKeyLoading}
                         >
@@ -411,6 +418,41 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
           </Box>
         </Box>
       </DialogContent>
+
+      {/* Confirmation Dialog for Stream Key Regeneration */}
+      <Dialog
+        open={confirmRegenerateOpen}
+        onClose={() => setConfirmRegenerateOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Confirm Stream Key Regeneration</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to regenerate the stream key for this user?
+          </Typography>
+          <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+            <strong>Warning:</strong> This action cannot be undone. The old stream key will become invalid immediately, 
+            and the user will need to update their streaming software with the new key.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setConfirmRegenerateOpen(false)} 
+            disabled={streamKeyLoading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={confirmRegenerateStreamKey} 
+            variant="contained" 
+            color="warning"
+            disabled={streamKeyLoading}
+          >
+            {streamKeyLoading ? "Regenerating..." : "Regenerate Key"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>
