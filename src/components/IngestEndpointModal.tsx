@@ -44,7 +44,7 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { api } = useLogin();
+  const { getAdminAPI } = useLogin();
   const [name, setName] = useState("");
   const [cost, setCost] = useState("");
   const [capabilities, setCapabilities] = useState<string[]>([]);
@@ -88,8 +88,6 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!api) return;
-
     const costNumber = parseFloat(cost);
     if (!name.trim() || isNaN(costNumber) || costNumber < 0) {
       setError("Please provide a valid name and cost");
@@ -99,6 +97,12 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
     try {
       setLoading(true);
       setError(null);
+
+      const api = await getAdminAPI();
+      if (!api) {
+        setError("Authentication required");
+        return;
+      }
 
       const endpointData = {
         name: name.trim(),

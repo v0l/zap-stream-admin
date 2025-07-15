@@ -29,7 +29,7 @@ import { MilliSatsDisplay } from "../components/MilliSatsDisplay";
 import { IngestEndpointModal } from "../components/IngestEndpointModal";
 
 export const IngestEndpointsPage: React.FC = () => {
-  const { api } = useLogin();
+  const { getAdminAPI } = useLogin();
   const [endpoints, setEndpoints] = useState<IngestEndpoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,11 +41,14 @@ export const IngestEndpointsPage: React.FC = () => {
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
   const loadEndpoints = async () => {
-    if (!api) return;
-
     try {
       setLoading(true);
       setError(null);
+      const api = await getAdminAPI();
+      if (!api) {
+        setError("Authentication required");
+        return;
+      }
       const response: IngestEndpointsResponse = await api.getIngestEndpoints(page, limit);
       setEndpoints(response.endpoints);
       setTotal(response.total);
@@ -59,7 +62,7 @@ export const IngestEndpointsPage: React.FC = () => {
 
   useEffect(() => {
     loadEndpoints();
-  }, [api, page, limit]);
+  }, [getAdminAPI, page, limit]);
 
   const handleCreateEndpoint = () => {
     setEditingEndpoint(null);
@@ -72,10 +75,15 @@ export const IngestEndpointsPage: React.FC = () => {
   };
 
   const handleDeleteEndpoint = async (id: number) => {
-    if (!api || !confirm("Are you sure you want to delete this ingest endpoint?")) return;
+    if (!confirm("Are you sure you want to delete this ingest endpoint?")) return;
 
     try {
       setDeleteLoading(id);
+      const api = await getAdminAPI();
+      if (!api) {
+        setError("Authentication required");
+        return;
+      }
       await api.deleteIngestEndpoint(id);
       await loadEndpoints(); // Refresh the list
     } catch (err) {
