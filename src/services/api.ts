@@ -94,6 +94,32 @@ export interface AuditLogResponse {
   total: number;
 }
 
+export interface IngestEndpoint {
+  id: number;
+  name: string;
+  cost: number; // Cost per minute in millisatoshis
+  capabilities: string[];
+}
+
+export interface IngestEndpointsResponse {
+  endpoints: IngestEndpoint[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export interface IngestEndpointCreateRequest {
+  name: string;
+  cost: number;
+  capabilities?: string[];
+}
+
+export interface IngestEndpointUpdateRequest {
+  name: string;
+  cost: number;
+  capabilities?: string[];
+}
+
 export class AdminAPI {
   private baseURL: string;
   private eventSigner: EventSigner;
@@ -308,5 +334,94 @@ export class AdminAPI {
     }
 
     return await response.json();
+  }
+
+  // Ingest Endpoint Management
+  async getIngestEndpoints(
+    page = 0,
+    limit = 50,
+  ): Promise<IngestEndpointsResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    const url = `${this.baseURL}/ingest-endpoints?${params}`;
+    const headers = await this.getHeaders(url, "GET");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async getIngestEndpoint(id: number): Promise<IngestEndpoint> {
+    const url = `${this.baseURL}/ingest-endpoints/${id}`;
+    const headers = await this.getHeaders(url, "GET");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async createIngestEndpoint(endpoint: IngestEndpointCreateRequest): Promise<IngestEndpoint> {
+    const url = `${this.baseURL}/ingest-endpoints`;
+    const headers = await this.getHeaders(url, "POST");
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(endpoint),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async updateIngestEndpoint(id: number, endpoint: IngestEndpointUpdateRequest): Promise<IngestEndpoint> {
+    const url = `${this.baseURL}/ingest-endpoints/${id}`;
+    const headers = await this.getHeaders(url, "PATCH");
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify(endpoint),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async deleteIngestEndpoint(id: number): Promise<void> {
+    const url = `${this.baseURL}/ingest-endpoints/${id}`;
+    const headers = await this.getHeaders(url, "DELETE");
+
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
   }
 }

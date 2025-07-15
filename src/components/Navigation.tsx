@@ -15,6 +15,7 @@ import {
   PeopleAlt as UsersIcon,
   AccountCircle,
   History as HistoryIcon,
+  Cable as IngestIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLogin } from "../services/login";
@@ -52,6 +53,7 @@ export const Navigation: React.FC = () => {
   const menuItems = [
     { path: "/", label: "Dashboard", icon: <DashboardIcon /> },
     { path: "/users", label: "Users", icon: <UsersIcon /> },
+    { path: "/ingest-endpoints", label: "Ingest Endpoints", icon: <IngestIcon /> },
     { path: "/audit-log", label: "Audit Log", icon: <HistoryIcon /> },
   ];
 

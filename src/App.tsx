@@ -10,6 +10,7 @@ import { Navigation } from "./components/Navigation";
 import { DashboardPage } from "./pages/DashboardPage";
 import { UsersPage } from "./pages/UsersPage";
 import { UserInspectPage } from "./pages/UserInspectPage";
+import { IngestEndpointsPage } from "./pages/IngestEndpointsPage";
 import { AuditLogPage } from "./pages/AuditLogPage";
 
 // Create Nostr system instance
@@ -30,6 +31,7 @@ const AdminDashboard: React.FC = () => {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/users/:userId" element={<UserInspectPage />} />
+        <Route path="/ingest-endpoints" element={<IngestEndpointsPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
       </Routes>
     </Box>
