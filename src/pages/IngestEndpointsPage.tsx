@@ -192,7 +192,7 @@ export const IngestEndpointsPage: React.FC = () => {
                       <Typography variant="subtitle2">{endpoint.name}</Typography>
                     </TableCell>
                     <TableCell>
-                      <MilliSatsDisplay amount={endpoint.cost} />
+                      <MilliSatsDisplay milliSats={endpoint.cost} />
                     </TableCell>
                     <TableCell>
                       <Box sx={{ maxWidth: 300 }}>
