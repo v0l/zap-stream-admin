@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { EventSigner, EventBuilder } from "@snort/system";
 import { OverallMetrics, StreamMetrics } from "../types/websocket";
+import { getSelectedAPIEndpoint } from "../services/api";
 
-const WS_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL
-  ? (import.meta as any).env.VITE_API_BASE_URL.replace(
-      /^https:/,
-      "wss:",
-    ).replace(/^http:/, "ws:")
-  : "wss://api.core.zap.stream";
+function getWebSocketURL(): string {
+  const endpoint = getSelectedAPIEndpoint();
+  return endpoint.url.replace(/^https:/, "wss:").replace(/^http:/, "ws:");
+}
 
 export function useWebSocket(signer: EventSigner | null) {
   const [metrics, setMetrics] = useState<OverallMetrics | null>(null);
@@ -39,7 +38,7 @@ export function useWebSocket(signer: EventSigner | null) {
   useEffect(() => {
     if (!signer) return;
 
-    const wsUrl = `${WS_BASE_URL}/api/v1/ws`;
+    const wsUrl = `${getWebSocketURL()}/api/v1/ws`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
