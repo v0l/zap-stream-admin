@@ -167,6 +167,7 @@ export interface IngestEndpoint {
   name: string;
   cost: number; // Cost per minute in millisatoshis
   capabilities: string[];
+  urls?: string[];
 }
 
 export interface IngestEndpointsResponse {

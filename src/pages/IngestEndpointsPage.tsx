@@ -16,12 +16,14 @@ import {
   IconButton,
   Chip,
   Stack,
+  Tooltip,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
+  ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import { useLogin } from "../services/login";
 import { IngestEndpoint, IngestEndpointsResponse } from "../services/api";
@@ -41,6 +43,7 @@ export const IngestEndpointsPage: React.FC = () => {
     null,
   );
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   const loadEndpoints = async () => {
     try {
@@ -138,6 +141,17 @@ export const IngestEndpointsPage: React.FC = () => {
     ));
   };
 
+
+  const handleCopyUrl = async (url: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopySuccess(`${type}-${url}`);
+      setTimeout(() => setCopySuccess(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy URL:", err);
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Box
@@ -183,6 +197,7 @@ export const IngestEndpointsPage: React.FC = () => {
               <TableRow>
                 <TableCell>ID</TableCell>
                 <TableCell>Name</TableCell>
+                <TableCell>URLs</TableCell>
                 <TableCell>Cost per Minute</TableCell>
                 <TableCell>Capabilities</TableCell>
                 <TableCell align="right">Actions</TableCell>
@@ -191,13 +206,13 @@ export const IngestEndpointsPage: React.FC = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : endpoints.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary">
                       No ingest endpoints found
                     </Typography>
@@ -213,6 +228,43 @@ export const IngestEndpointsPage: React.FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
+                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                        {endpoint.urls && endpoint.urls.length > 0 ? (
+                          endpoint.urls.map((url, index) => (
+                            <Box
+                              key={index}
+                              sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{ fontFamily: "monospace", fontSize: "0.875rem" }}
+                              >
+                                {url}
+                              </Typography>
+                              <Tooltip
+                                title={
+                                  copySuccess === `URL-${url}`
+                                    ? "Copied!"
+                                    : "Copy URL"
+                                }
+                              >
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCopyUrl(url, "URL")}
+                                >
+                                  <ContentCopyIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          ))
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No URLs available
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
                       <MilliSatsDisplay milliSats={endpoint.cost} />
                     </TableCell>
                     <TableCell>
@@ -221,34 +273,34 @@ export const IngestEndpointsPage: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell align="right">
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        justifyContent="flex-end"
-                      >
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEditEndpoint(endpoint)}
-                          title="Edit endpoint"
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="flex-end"
                         >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDeleteEndpoint(endpoint.id)}
-                          disabled={deleteLoading === endpoint.id}
-                          title="Delete endpoint"
-                        >
-                          {deleteLoading === endpoint.id ? (
-                            <CircularProgress size={16} />
-                          ) : (
-                            <DeleteIcon />
-                          )}
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditEndpoint(endpoint)}
+                            title="Edit endpoint"
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteEndpoint(endpoint.id)}
+                            disabled={deleteLoading === endpoint.id}
+                            title="Delete endpoint"
+                          >
+                            {deleteLoading === endpoint.id ? (
+                              <CircularProgress size={16} />
+                            ) : (
+                              <DeleteIcon />
+                            )}
+                          </IconButton>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
                 ))
               )}
             </TableBody>
