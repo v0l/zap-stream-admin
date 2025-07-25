@@ -135,7 +135,11 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
 
   const maskStreamKey = (key: string) => {
     if (key.length <= 8) return key;
-    return key.substring(0, 8) + "•".repeat(key.length - 12) + key.substring(key.length - 4);
+    return (
+      key.substring(0, 8) +
+      "•".repeat(key.length - 12) +
+      key.substring(key.length - 4)
+    );
   };
 
   const handleSave = async () => {
@@ -231,10 +235,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
             <Box flex="1" minWidth="200px">
               <Typography variant="body2">
                 <strong>Balance:</strong>{" "}
-                <MilliSatsDisplay 
-                  milliSats={user.balance} 
-                  variant="body2"
-                />
+                <MilliSatsDisplay milliSats={user.balance} variant="body2" />
               </Typography>
             </Box>
             <Box flex="1" minWidth="200px">
@@ -304,7 +305,13 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
             <TextField
               fullWidth
               label="Stream Key"
-              value={streamKey ? (streamKeyVisible ? streamKey : maskStreamKey(streamKey)) : ""}
+              value={
+                streamKey
+                  ? streamKeyVisible
+                    ? streamKey
+                    : maskStreamKey(streamKey)
+                  : ""
+              }
               placeholder={streamKey ? "" : "Click Load to fetch stream key"}
               InputProps={{
                 readOnly: true,
@@ -313,15 +320,27 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                     <Box display="flex" gap={0.5}>
                       {streamKey && (
                         <>
-                          <Tooltip title={streamKeyVisible ? "Hide key" : "Show key"}>
+                          <Tooltip
+                            title={streamKeyVisible ? "Hide key" : "Show key"}
+                          >
                             <IconButton
-                              onClick={() => setStreamKeyVisible(!streamKeyVisible)}
+                              onClick={() =>
+                                setStreamKeyVisible(!streamKeyVisible)
+                              }
                               size="small"
                             >
-                              {streamKeyVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                              {streamKeyVisible ? (
+                                <VisibilityOffIcon />
+                              ) : (
+                                <VisibilityIcon />
+                              )}
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title={copySuccess ? "Copied!" : "Copy to clipboard"}>
+                          <Tooltip
+                            title={
+                              copySuccess ? "Copied!" : "Copy to clipboard"
+                            }
+                          >
                             <IconButton
                               onClick={copyStreamKey}
                               size="small"
@@ -433,20 +452,21 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
             Are you sure you want to regenerate the stream key for this user?
           </Typography>
           <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
-            <strong>Warning:</strong> This action cannot be undone. The old stream key will become invalid immediately, 
-            and the user will need to update their streaming software with the new key.
+            <strong>Warning:</strong> This action cannot be undone. The old
+            stream key will become invalid immediately, and the user will need
+            to update their streaming software with the new key.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button 
-            onClick={() => setConfirmRegenerateOpen(false)} 
+          <Button
+            onClick={() => setConfirmRegenerateOpen(false)}
             disabled={streamKeyLoading}
           >
             Cancel
           </Button>
-          <Button 
-            onClick={confirmRegenerateStreamKey} 
-            variant="contained" 
+          <Button
+            onClick={confirmRegenerateStreamKey}
+            variant="contained"
             color="warning"
             disabled={streamKeyLoading}
           >

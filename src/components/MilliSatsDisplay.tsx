@@ -22,17 +22,13 @@ export const MilliSatsDisplay: React.FC<MilliSatsDisplayProps> = ({
   // Convert milli-sats to sats with 3 decimal places
   const sats = milliSats / 1000;
   const satsString = sats.toFixed(3);
-  
+
   // Split into whole and decimal parts
   const [wholePart, decimalPart] = satsString.split(".");
-  
+
   return (
     <Box component="span" display="inline-flex" alignItems="baseline">
-      <Typography
-        component="span"
-        variant={variant}
-        color={color}
-      >
+      <Typography component="span" variant={variant} color={color}>
         {parseInt(wholePart).toLocaleString()}
       </Typography>
       <Typography

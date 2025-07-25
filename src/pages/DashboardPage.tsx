@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-} from "@mui/material";
+import { Container, Typography, Box, Paper } from "@mui/material";
 import { useLogin } from "../services/login";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { SystemMetrics } from "../components/SystemMetrics";
@@ -12,7 +7,9 @@ import { StreamList } from "../components/StreamList";
 
 export const DashboardPage: React.FC = () => {
   const { signer } = useLogin();
-  const { metrics, streams, isConnected, isAdmin, error } = useWebSocket(signer || null);
+  const { metrics, streams, isConnected, isAdmin, error } = useWebSocket(
+    signer || null,
+  );
 
   return (
     <Container maxWidth="xl" sx={{ mt: 3 }}>
@@ -30,9 +27,7 @@ export const DashboardPage: React.FC = () => {
         <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
           System Overview
         </Typography>
-        <SystemMetrics
-          metrics={metrics}
-        />
+        <SystemMetrics metrics={metrics} />
       </Box>
 
       {/* Active Streams */}
@@ -40,22 +35,19 @@ export const DashboardPage: React.FC = () => {
         <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
           Live Streams
         </Typography>
-        <StreamList
-          streams={streams}
-          isConnected={isConnected}
-        />
+        <StreamList streams={streams} isConnected={isConnected} />
       </Box>
 
       {/* Connection Status and Errors */}
       {error && (
         <Box mb={4}>
-          <Paper sx={{ p: 3, bgcolor: "error.light", color: "error.contrastText" }}>
+          <Paper
+            sx={{ p: 3, bgcolor: "error.light", color: "error.contrastText" }}
+          >
             <Typography variant="h6" gutterBottom>
               Connection Error
             </Typography>
-            <Typography variant="body2">
-              {error}
-            </Typography>
+            <Typography variant="body2">{error}</Typography>
           </Paper>
         </Box>
       )}

@@ -2,8 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { EventSigner, EventBuilder } from "@snort/system";
 import { OverallMetrics, StreamMetrics } from "../types/websocket";
 
-const WS_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL 
-  ? (import.meta as any).env.VITE_API_BASE_URL.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:')
+const WS_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL
+  ? (import.meta as any).env.VITE_API_BASE_URL.replace(
+      /^https:/,
+      "wss:",
+    ).replace(/^http:/, "ws:")
   : "wss://api.core.zap.stream";
 
 export function useWebSocket(signer: EventSigner | null) {
@@ -20,13 +23,13 @@ export function useWebSocket(signer: EventSigner | null) {
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      setStreams(prevStreams => 
-        prevStreams.filter(stream => {
+      setStreams((prevStreams) =>
+        prevStreams.filter((stream) => {
           const lastUpdate = new Date(stream.last_segment_time).getTime();
           const age = now - lastUpdate;
           // Remove streams that haven't updated in 30 seconds
           return age < 30000;
-        })
+        }),
       );
     }, 10000); // Check every 10 seconds
 
@@ -44,7 +47,7 @@ export function useWebSocket(signer: EventSigner | null) {
       console.log("WebSocket connected");
       setIsConnected(true);
       setError(null);
-      
+
       // Authenticate
       try {
         const authEvent = await new EventBuilder()
@@ -54,10 +57,12 @@ export function useWebSocket(signer: EventSigner | null) {
           .tag(["method", "GET"])
           .buildAndSign(signer);
 
-        ws.send(JSON.stringify({
-          type: "Auth",
-          data: { token: btoa(JSON.stringify(authEvent)) }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "Auth",
+            data: { token: btoa(JSON.stringify(authEvent)) },
+          }),
+        );
       } catch (error) {
         console.error("Auth failed:", error);
         setError("Authentication failed");
@@ -67,33 +72,37 @@ export function useWebSocket(signer: EventSigner | null) {
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        
+
         switch (message.type) {
           case "AuthResponse":
             if (message.data.success) {
               setIsAdmin(message.data.is_admin);
               if (message.data.is_admin) {
                 // Subscribe to overall metrics
-                ws.send(JSON.stringify({
-                  type: "SubscribeOverall",
-                  data: null
-                }));
+                ws.send(
+                  JSON.stringify({
+                    type: "SubscribeOverall",
+                    data: null,
+                  }),
+                );
               }
             } else {
               setError("Authentication failed");
             }
             break;
-            
+
           case "OverallMetrics":
             setMetrics(message.data);
             break;
-            
+
           case "StreamMetrics":
             // Update individual stream in the streams array
-            setStreams(prevStreams => {
+            setStreams((prevStreams) => {
               const streamId = message.data.stream_id;
-              const existingIndex = prevStreams.findIndex(s => s.stream_id === streamId);
-              
+              const existingIndex = prevStreams.findIndex(
+                (s) => s.stream_id === streamId,
+              );
+
               if (existingIndex >= 0) {
                 // Update existing stream
                 const newStreams = [...prevStreams];
@@ -105,7 +114,7 @@ export function useWebSocket(signer: EventSigner | null) {
               }
             });
             break;
-            
+
           case "Error":
             setError(message.data.message);
             break;

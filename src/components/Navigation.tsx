@@ -8,6 +8,8 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Select,
+  FormControl,
 } from "@mui/material";
 import {
   Logout as LogoutIcon,
@@ -16,11 +18,17 @@ import {
   AccountCircle,
   History as HistoryIcon,
   Cable as IngestIcon,
+  Storage as ServerIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLogin } from "../services/login";
 import { UserProfile } from "./UserProfile";
-import { User } from "../services/api";
+import {
+  User,
+  getAPIEndpoints,
+  getSelectedAPIEndpoint,
+  setSelectedAPIEndpoint,
+} from "../services/api";
 
 export const Navigation: React.FC = () => {
   const { logout, publicKey } = useLogin();
@@ -28,6 +36,11 @@ export const Navigation: React.FC = () => {
   const location = useLocation();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const profileRef = React.useRef<HTMLElement>(null);
+
+  const [apiEndpoints] = React.useState(() => getAPIEndpoints());
+  const [selectedEndpoint, setSelectedEndpointState] = React.useState(() =>
+    getSelectedAPIEndpoint(),
+  );
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -48,12 +61,25 @@ export const Navigation: React.FC = () => {
     handleMenuClose();
   };
 
+  const handleEndpointChange = (endpointId: string) => {
+    setSelectedAPIEndpoint(endpointId);
+    setSelectedEndpointState(
+      apiEndpoints.find((ep) => ep.id === endpointId) || apiEndpoints[0],
+    );
+    // Reload the page to reinitialize with new API endpoint
+    window.location.reload();
+  };
+
   const isMenuOpen = Boolean(anchorEl);
 
   const menuItems = [
     { path: "/", label: "Dashboard", icon: <DashboardIcon /> },
     { path: "/users", label: "Users", icon: <UsersIcon /> },
-    { path: "/ingest-endpoints", label: "Ingest Endpoints", icon: <IngestIcon /> },
+    {
+      path: "/ingest-endpoints",
+      label: "Ingest Endpoints",
+      icon: <IngestIcon />,
+    },
     { path: "/audit-log", label: "Audit Log", icon: <HistoryIcon /> },
   ];
 
@@ -98,7 +124,62 @@ export const Navigation: React.FC = () => {
           ))}
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          {/* API Endpoint Selector */}
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <Select
+              value={selectedEndpoint.id}
+              onChange={(e) => handleEndpointChange(e.target.value)}
+              variant="outlined"
+              size="small"
+              sx={{
+                color: "white",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(255, 255, 255, 0.3)",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(255, 255, 255, 0.5)",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(255, 255, 255, 0.7)",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "white",
+                },
+              }}
+              renderValue={(value) => {
+                const endpoint = apiEndpoints.find((ep) => ep.id === value);
+                return (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <ServerIcon fontSize="small" />
+                    <Typography variant="body2" sx={{ color: "white" }}>
+                      {endpoint?.name || "Unknown"}
+                    </Typography>
+                  </Box>
+                );
+              }}
+            >
+              {apiEndpoints.map((endpoint) => (
+                <MenuItem key={endpoint.id} value={endpoint.id}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight="medium">
+                      {endpoint.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {endpoint.url}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           {loggedInUser && (
             <Box sx={{ display: { xs: "none", sm: "block" } }} ref={profileRef}>
               <UserProfile

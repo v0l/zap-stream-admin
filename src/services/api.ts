@@ -1,7 +1,75 @@
 import { EventSigner, EventBuilder } from "@snort/system";
 
-const API_BASE_URL =
-  (import.meta as any).env.VITE_API_BASE_URL || "https://api.core.zap.stream";
+export interface APIEndpoint {
+  id: string;
+  name: string;
+  url: string;
+}
+
+const DEFAULT_API_ENDPOINTS: APIEndpoint[] = [
+  { id: "production", name: "Production", url: "https://api-core.zap.stream" },
+  { id: "backup", name: "Backup", url: "https://backup.zap.stream" },
+  { id: "local", name: "Local Development", url: "http://localhost:8080" },
+];
+
+const STORAGE_KEY = "zap-stream-api-endpoints";
+const SELECTED_ENDPOINT_KEY = "zap-stream-selected-endpoint";
+
+function getStoredEndpoints(): APIEndpoint[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : DEFAULT_API_ENDPOINTS;
+  } catch {
+    return DEFAULT_API_ENDPOINTS;
+  }
+}
+
+function getSelectedEndpointId(): string {
+  return localStorage.getItem(SELECTED_ENDPOINT_KEY) || "production";
+}
+
+export function getAPIEndpoints(): APIEndpoint[] {
+  return getStoredEndpoints();
+}
+
+export function setAPIEndpoints(endpoints: APIEndpoint[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(endpoints));
+}
+
+export function getSelectedAPIEndpoint(): APIEndpoint {
+  const endpoints = getStoredEndpoints();
+  const selectedId = getSelectedEndpointId();
+  return endpoints.find((ep) => ep.id === selectedId) || endpoints[0];
+}
+
+export function setSelectedAPIEndpoint(endpointId: string): void {
+  localStorage.setItem(SELECTED_ENDPOINT_KEY, endpointId);
+}
+
+export function addAPIEndpoint(endpoint: APIEndpoint): void {
+  const endpoints = getStoredEndpoints();
+  const existingIndex = endpoints.findIndex((ep) => ep.id === endpoint.id);
+  if (existingIndex >= 0) {
+    endpoints[existingIndex] = endpoint;
+  } else {
+    endpoints.push(endpoint);
+  }
+  setAPIEndpoints(endpoints);
+}
+
+export function removeAPIEndpoint(endpointId: string): void {
+  const endpoints = getStoredEndpoints();
+  const filtered = endpoints.filter((ep) => ep.id !== endpointId);
+  setAPIEndpoints(filtered);
+
+  if (getSelectedEndpointId() === endpointId) {
+    setSelectedAPIEndpoint(filtered[0]?.id || "production");
+  }
+}
+
+function getAPIBaseURL(): string {
+  return getSelectedAPIEndpoint().url;
+}
 
 export interface User {
   id: number;
@@ -121,12 +189,14 @@ export interface IngestEndpointUpdateRequest {
 }
 
 export class AdminAPI {
-  private baseURL: string;
   private eventSigner: EventSigner;
 
   constructor(signer: EventSigner) {
     this.eventSigner = signer;
-    this.baseURL = `${API_BASE_URL}/api/v1/admin`;
+  }
+
+  private getBaseURL(): string {
+    return `${getAPIBaseURL()}/api/v1/admin`;
   }
 
   private async getHeaders(url: string, method: string) {
@@ -148,6 +218,14 @@ export class AdminAPI {
         headers["Authorization"] = `Nostr ${authToken}`;
       } catch (error) {
         console.error("Failed to sign request:", error);
+        if (
+          error instanceof Error &&
+          error.message.includes("NIP-07 signer, not found")
+        ) {
+          throw new Error(
+            "NIP-07 extension not ready. Please refresh the page or check your browser extension.",
+          );
+        }
         throw new Error("Authentication failed");
       }
     }
@@ -169,7 +247,7 @@ export class AdminAPI {
       params.append("search", search);
     }
 
-    const url = `${this.baseURL}/users?${params}`;
+    const url = `${this.getBaseURL()}/users?${params}`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
@@ -185,7 +263,7 @@ export class AdminAPI {
   }
 
   async updateUser(userId: number, updates: UserUpdateRequest): Promise<void> {
-    const url = `${this.baseURL}/users/${userId}`;
+    const url = `${this.getBaseURL()}/users/${userId}`;
     const headers = await this.getHeaders(url, "POST");
 
     const response = await fetch(url, {
@@ -225,7 +303,7 @@ export class AdminAPI {
 
   // Future API methods for user inspection
   async getUser(userId: number): Promise<User> {
-    const url = `${this.baseURL}/users/${userId}`;
+    const url = `${this.getBaseURL()}/users/${userId}`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
@@ -245,7 +323,7 @@ export class AdminAPI {
     page = 0,
     limit = 25,
   ): Promise<StreamsResponse> {
-    const url = `${this.baseURL}/users/${userId}/streams?page=${page}&limit=${limit}`;
+    const url = `${this.getBaseURL()}/users/${userId}/streams?page=${page}&limit=${limit}`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
@@ -265,7 +343,7 @@ export class AdminAPI {
     page = 0,
     limit = 25,
   ): Promise<HistoryResponse> {
-    const url = `${this.baseURL}/users/${userId}/history?page=${page}&limit=${limit}`;
+    const url = `${this.getBaseURL()}/users/${userId}/history?page=${page}&limit=${limit}`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
@@ -281,7 +359,7 @@ export class AdminAPI {
   }
 
   async regenerateStreamKey(userId: number): Promise<{ stream_key: string }> {
-    const url = `${this.baseURL}/users/${userId}/stream-key/regenerate`;
+    const url = `${this.getBaseURL()}/users/${userId}/stream-key/regenerate`;
     const headers = await this.getHeaders(url, "POST");
 
     const response = await fetch(url, {
@@ -297,7 +375,7 @@ export class AdminAPI {
   }
 
   async getStreamKey(userId: number): Promise<{ stream_key: string }> {
-    const url = `${this.baseURL}/users/${userId}/stream-key`;
+    const url = `${this.getBaseURL()}/users/${userId}/stream-key`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
@@ -312,16 +390,13 @@ export class AdminAPI {
     return await response.json();
   }
 
-  async getAuditLogs(
-    page = 0,
-    limit = 50,
-  ): Promise<AuditLogResponse> {
+  async getAuditLogs(page = 0, limit = 50): Promise<AuditLogResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
 
-    const url = `${this.baseURL}/audit-log?${params}`;
+    const url = `${this.getBaseURL()}/audit-log?${params}`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
@@ -346,7 +421,7 @@ export class AdminAPI {
       limit: limit.toString(),
     });
 
-    const url = `${this.baseURL}/ingest-endpoints?${params}`;
+    const url = `${this.getBaseURL()}/ingest-endpoints?${params}`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
@@ -362,7 +437,7 @@ export class AdminAPI {
   }
 
   async getIngestEndpoint(id: number): Promise<IngestEndpoint> {
-    const url = `${this.baseURL}/ingest-endpoints/${id}`;
+    const url = `${this.getBaseURL()}/ingest-endpoints/${id}`;
     const headers = await this.getHeaders(url, "GET");
 
     const response = await fetch(url, {
@@ -377,8 +452,10 @@ export class AdminAPI {
     return await response.json();
   }
 
-  async createIngestEndpoint(endpoint: IngestEndpointCreateRequest): Promise<IngestEndpoint> {
-    const url = `${this.baseURL}/ingest-endpoints`;
+  async createIngestEndpoint(
+    endpoint: IngestEndpointCreateRequest,
+  ): Promise<IngestEndpoint> {
+    const url = `${this.getBaseURL()}/ingest-endpoints`;
     const headers = await this.getHeaders(url, "POST");
 
     const response = await fetch(url, {
@@ -394,8 +471,11 @@ export class AdminAPI {
     return await response.json();
   }
 
-  async updateIngestEndpoint(id: number, endpoint: IngestEndpointUpdateRequest): Promise<IngestEndpoint> {
-    const url = `${this.baseURL}/ingest-endpoints/${id}`;
+  async updateIngestEndpoint(
+    id: number,
+    endpoint: IngestEndpointUpdateRequest,
+  ): Promise<IngestEndpoint> {
+    const url = `${this.getBaseURL()}/ingest-endpoints/${id}`;
     const headers = await this.getHeaders(url, "PATCH");
 
     const response = await fetch(url, {
@@ -412,7 +492,7 @@ export class AdminAPI {
   }
 
   async deleteIngestEndpoint(id: number): Promise<void> {
-    const url = `${this.baseURL}/ingest-endpoints/${id}`;
+    const url = `${this.getBaseURL()}/ingest-endpoints/${id}`;
     const headers = await this.getHeaders(url, "DELETE");
 
     const response = await fetch(url, {

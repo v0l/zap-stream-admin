@@ -120,8 +120,8 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
         type: "number",
         renderCell: (params) => (
           <Box display="flex" alignItems="center" height="100%">
-            <MilliSatsDisplay 
-              milliSats={params.value} 
+            <MilliSatsDisplay
+              milliSats={params.value}
               color="success.main"
               variant="body2"
             />

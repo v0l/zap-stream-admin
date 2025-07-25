@@ -83,7 +83,13 @@ class LoginStoreImpl extends EventEmitter {
     if (!this._signer && this._session) {
       switch (this._session.type) {
         case "nip7":
-          this._signer = new Nip7Signer();
+          // Only create signer if NIP-07 is available
+          if (typeof window !== "undefined" && window.nostr) {
+            this._signer = new Nip7Signer();
+          } else {
+            console.warn("NIP-07 extension not available yet");
+            return undefined;
+          }
           break;
         default:
           console.warn(`Unsupported login type: ${this._session.type}`);
@@ -119,13 +125,13 @@ export function useLogin() {
     const timeoutId = setTimeout(checkNip07Support, 1000);
 
     // Also check on window load if not already loaded
-    if (document.readyState === 'loading') {
-      window.addEventListener('load', checkNip07Support);
+    if (document.readyState === "loading") {
+      window.addEventListener("load", checkNip07Support);
     }
 
     return () => {
       clearTimeout(timeoutId);
-      window.removeEventListener('load', checkNip07Support);
+      window.removeEventListener("load", checkNip07Support);
     };
   }, []);
 
@@ -134,9 +140,20 @@ export function useLogin() {
   const signer = loginStore.getSigner();
 
   const getAdminAPI = useCallback(async (): Promise<AdminAPI | null> => {
-    if (!signer) return null;
-    return new AdminAPI(signer);
-  }, [signer]);
+    // If signer is not available, wait a bit and try again
+    let currentSigner = signer;
+    if (!currentSigner && isAuthenticated) {
+      // Wait for NIP-07 extension to load
+      for (let i = 0; i < 10; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        currentSigner = loginStore.getSigner();
+        if (currentSigner) break;
+      }
+    }
+
+    if (!currentSigner) return null;
+    return new AdminAPI(currentSigner);
+  }, [signer, isAuthenticated]);
 
   const loginWithNip07 = async () => {
     if (!isNip07Supported) {
@@ -184,6 +201,6 @@ export function useLogin() {
     error,
     isNip07Supported,
     getAdminAPI,
-    signer
+    signer,
   };
 }

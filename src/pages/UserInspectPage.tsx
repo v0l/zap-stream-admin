@@ -237,7 +237,7 @@ export const UserInspectPage: React.FC = () => {
       renderCell: (params) => {
         const stream = params.row as Stream;
         let duration: number;
-        
+
         if (stream.state === "ended" && stream.ends) {
           duration = stream.ends - stream.starts;
         } else if (stream.state === "live") {
@@ -245,12 +245,10 @@ export const UserInspectPage: React.FC = () => {
         } else {
           duration = params.value;
         }
-        
+
         return (
           <Box display="flex" alignItems="center" height="100%">
-            <Typography variant="body2">
-              {formatDuration(duration)}
-            </Typography>
+            <Typography variant="body2">{formatDuration(duration)}</Typography>
           </Box>
         );
       },
@@ -261,8 +259,8 @@ export const UserInspectPage: React.FC = () => {
       width: 120,
       renderCell: (params) => (
         <Box display="flex" alignItems="center" height="100%">
-          <MilliSatsDisplay 
-            milliSats={params.value} 
+          <MilliSatsDisplay
+            milliSats={params.value}
             color="warning.main"
             variant="body2"
           />
@@ -378,8 +376,8 @@ export const UserInspectPage: React.FC = () => {
             <Typography variant="subtitle2" color="text.secondary">
               Current Balance
             </Typography>
-            <MilliSatsDisplay 
-              milliSats={user.balance} 
+            <MilliSatsDisplay
+              milliSats={user.balance}
               color="success.main"
               variant="body1"
             />

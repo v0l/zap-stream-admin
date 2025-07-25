@@ -95,8 +95,8 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ entry }) => {
         </TableCell>
         <TableCell>{entry.id}</TableCell>
         <TableCell>
-          <UserProfile 
-            user={createUserFromPubkey(entry.admin_pubkey)} 
+          <UserProfile
+            user={createUserFromPubkey(entry.admin_pubkey)}
             size="small"
             showCopyButton={true}
           />
@@ -113,8 +113,8 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({ entry }) => {
             {entry.target_type}
           </Typography>
           {entry.target_pubkey ? (
-            <UserProfile 
-              user={createUserFromPubkey(entry.target_pubkey)} 
+            <UserProfile
+              user={createUserFromPubkey(entry.target_pubkey)}
               size="small"
               showCopyButton={true}
             />
@@ -189,7 +189,9 @@ export const AuditLogPage: React.FC = () => {
       setAuditLogs(response.logs);
       setTotalCount(response.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load audit logs");
+      setError(
+        err instanceof Error ? err.message : "Failed to load audit logs",
+      );
     } finally {
       setLoading(false);
     }
@@ -204,7 +206,7 @@ export const AuditLogPage: React.FC = () => {
   };
 
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);

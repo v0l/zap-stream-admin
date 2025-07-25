@@ -37,7 +37,9 @@ export const IngestEndpointsPage: React.FC = () => {
   const [limit, setLimit] = useState(25);
   const [total, setTotal] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEndpoint, setEditingEndpoint] = useState<IngestEndpoint | null>(null);
+  const [editingEndpoint, setEditingEndpoint] = useState<IngestEndpoint | null>(
+    null,
+  );
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
   const loadEndpoints = async () => {
@@ -49,12 +51,17 @@ export const IngestEndpointsPage: React.FC = () => {
         setError("Authentication required");
         return;
       }
-      const response: IngestEndpointsResponse = await api.getIngestEndpoints(page, limit);
+      const response: IngestEndpointsResponse = await api.getIngestEndpoints(
+        page,
+        limit,
+      );
       setEndpoints(response.endpoints);
       setTotal(response.total);
     } catch (err) {
       console.error("Error loading ingest endpoints:", err);
-      setError(err instanceof Error ? err.message : "Failed to load ingest endpoints");
+      setError(
+        err instanceof Error ? err.message : "Failed to load ingest endpoints",
+      );
     } finally {
       setLoading(false);
     }
@@ -75,7 +82,8 @@ export const IngestEndpointsPage: React.FC = () => {
   };
 
   const handleDeleteEndpoint = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this ingest endpoint?")) return;
+    if (!confirm("Are you sure you want to delete this ingest endpoint?"))
+      return;
 
     try {
       setDeleteLoading(id);
@@ -88,7 +96,9 @@ export const IngestEndpointsPage: React.FC = () => {
       await loadEndpoints(); // Refresh the list
     } catch (err) {
       console.error("Error deleting ingest endpoint:", err);
-      setError(err instanceof Error ? err.message : "Failed to delete ingest endpoint");
+      setError(
+        err instanceof Error ? err.message : "Failed to delete ingest endpoint",
+      );
     } finally {
       setDeleteLoading(null);
     }
@@ -109,14 +119,16 @@ export const IngestEndpointsPage: React.FC = () => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setLimit(parseInt(event.target.value, 10));
     setPage(0);
   };
 
   const formatCapabilities = (capabilities: string[]) => {
     return capabilities.map((cap, index) => (
-      <Chip 
+      <Chip
         key={index}
         label={cap}
         size="small"
@@ -128,7 +140,14 @@ export const IngestEndpointsPage: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
         <Typography variant="h4" component="h1">
           Ingest Endpoints
         </Typography>
@@ -189,7 +208,9 @@ export const IngestEndpointsPage: React.FC = () => {
                   <TableRow key={endpoint.id} hover>
                     <TableCell>{endpoint.id}</TableCell>
                     <TableCell>
-                      <Typography variant="subtitle2">{endpoint.name}</Typography>
+                      <Typography variant="subtitle2">
+                        {endpoint.name}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       <MilliSatsDisplay milliSats={endpoint.cost} />
@@ -200,7 +221,11 @@ export const IngestEndpointsPage: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        justifyContent="flex-end"
+                      >
                         <IconButton
                           size="small"
                           onClick={() => handleEditEndpoint(endpoint)}
@@ -229,7 +254,7 @@ export const IngestEndpointsPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        
+
         <TablePagination
           rowsPerPageOptions={[10, 25, 50]}
           component="div"

@@ -14,12 +14,13 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-} from "@mui/icons-material";
+import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { useLogin } from "../services/login";
-import { IngestEndpoint, IngestEndpointCreateRequest, IngestEndpointUpdateRequest } from "../services/api";
+import {
+  IngestEndpoint,
+  IngestEndpointCreateRequest,
+  IngestEndpointUpdateRequest,
+} from "../services/api";
 
 interface IngestEndpointModalProps {
   open: boolean;
@@ -78,7 +79,7 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
   };
 
   const handleRemoveCapability = (capabilityToRemove: string) => {
-    setCapabilities(capabilities.filter(cap => cap !== capabilityToRemove));
+    setCapabilities(capabilities.filter((cap) => cap !== capabilityToRemove));
   };
 
   const handleAddCustomCapability = () => {
@@ -111,15 +112,22 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
       };
 
       if (isEditing && endpoint) {
-        await api.updateIngestEndpoint(endpoint.id, endpointData as IngestEndpointUpdateRequest);
+        await api.updateIngestEndpoint(
+          endpoint.id,
+          endpointData as IngestEndpointUpdateRequest,
+        );
       } else {
-        await api.createIngestEndpoint(endpointData as IngestEndpointCreateRequest);
+        await api.createIngestEndpoint(
+          endpointData as IngestEndpointCreateRequest,
+        );
       }
 
       onSuccess();
     } catch (err) {
       console.error("Error saving ingest endpoint:", err);
-      setError(err instanceof Error ? err.message : "Failed to save ingest endpoint");
+      setError(
+        err instanceof Error ? err.message : "Failed to save ingest endpoint",
+      );
     } finally {
       setLoading(false);
     }
@@ -137,7 +145,7 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
       <DialogTitle>
         {isEditing ? "Edit Ingest Endpoint" : "Create Ingest Endpoint"}
       </DialogTitle>
-      
+
       <DialogContent>
         <Box sx={{ pt: 1 }}>
           {error && (
@@ -176,19 +184,21 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
             <Typography variant="subtitle2" gutterBottom>
               Capabilities
             </Typography>
-            
+
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               Common capabilities:
             </Typography>
-            
+
             <Box sx={{ mb: 2 }}>
               {COMMON_CAPABILITIES.map((cap) => (
                 <Button
                   key={cap}
                   size="small"
-                  variant={capabilities.includes(cap) ? "contained" : "outlined"}
-                  onClick={() => 
-                    capabilities.includes(cap) 
+                  variant={
+                    capabilities.includes(cap) ? "contained" : "outlined"
+                  }
+                  onClick={() =>
+                    capabilities.includes(cap)
                       ? handleRemoveCapability(cap)
                       : handleAddCapability(cap)
                   }
@@ -224,14 +234,22 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               Selected capabilities:
             </Typography>
-            
+
             <Box>
               {capabilities.length === 0 ? (
-                <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  fontStyle="italic"
+                >
                   No capabilities selected
                 </Typography>
               ) : (
-                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ flexWrap: "wrap", gap: 1 }}
+                >
                   {capabilities.map((cap) => (
                     <Chip
                       key={cap}
@@ -249,11 +267,11 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
 
           <Box sx={{ mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              <strong>Capability Format Examples:</strong><br />
-              • <code>variant:source</code> - Include source quality<br />
-              • <code>variant:720:3000000</code> - 720p at 3Mbps<br />
-              • <code>variant:1080:5000000</code> - 1080p at 5Mbps<br />
-              • <code>dvr:720</code> - Enable DVR recording at 720p
+              <strong>Capability Format Examples:</strong>
+              <br />• <code>variant:source</code> - Include source quality
+              <br />• <code>variant:720:3000000</code> - 720p at 3Mbps
+              <br />• <code>variant:1080:5000000</code> - 1080p at 5Mbps
+              <br />• <code>dvr:720</code> - Enable DVR recording at 720p
             </Typography>
           </Box>
         </Box>
@@ -263,9 +281,9 @@ export const IngestEndpointModal: React.FC<IngestEndpointModalProps> = ({
         <Button onClick={onClose} disabled={loading}>
           Cancel
         </Button>
-        <Button 
-          onClick={handleSubmit} 
-          variant="contained" 
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
           disabled={loading || !name.trim() || !cost}
           startIcon={loading ? <CircularProgress size={16} /> : null}
         >

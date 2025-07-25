@@ -71,13 +71,13 @@ export interface ErrorMessage extends WebSocketMessage {
   };
 }
 
-export type WebSocketIncomingMessage = 
+export type WebSocketIncomingMessage =
   | AuthResponse
   | StreamMetricsMessage
   | OverallMetricsMessage
   | ErrorMessage;
 
-export type WebSocketOutgoingMessage = 
+export type WebSocketOutgoingMessage =
   | AuthMessage
   | SubscribeStreamMessage
   | SubscribeOverallMessage;

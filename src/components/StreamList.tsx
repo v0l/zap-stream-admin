@@ -44,7 +44,10 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
     return mbps.toFixed(2) + " Mbps";
   };
 
-  const getStreamHealth = (fps: number, targetFps: number): "good" | "warning" | "error" => {
+  const getStreamHealth = (
+    fps: number,
+    targetFps: number,
+  ): "good" | "warning" | "error" => {
     if (fps >= targetFps * 0.95) return "good";
     if (fps >= targetFps * 0.7) return "warning";
     return "error";
@@ -52,21 +55,27 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
 
   const getHealthColor = (health: "good" | "warning" | "error") => {
     switch (health) {
-      case "good": return "success";
-      case "warning": return "warning";
-      case "error": return "error";
+      case "good":
+        return "success";
+      case "warning":
+        return "warning";
+      case "error":
+        return "error";
     }
   };
 
   const health = getStreamHealth(stream.average_fps, stream.target_fps);
-  const isLive = new Date().getTime() - new Date(stream.last_segment_time).getTime() < 10000;
+  const isLive =
+    new Date().getTime() - new Date(stream.last_segment_time).getTime() < 10000;
 
   return (
     <>
       <TableRow hover>
         <TableCell>
           <Box display="flex" alignItems="center">
-            <Avatar sx={{ mr: 2, bgcolor: isLive ? "success.main" : "grey.400" }}>
+            <Avatar
+              sx={{ mr: 2, bgcolor: isLive ? "success.main" : "grey.400" }}
+            >
               <PlayCircleOutline />
             </Avatar>
             <Box>
@@ -93,9 +102,7 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
           </Box>
         </TableCell>
         <TableCell>
-          <Typography variant="body2">
-            {stream.input_resolution}
-          </Typography>
+          <Typography variant="body2">{stream.input_resolution}</Typography>
         </TableCell>
         <TableCell>
           <Typography variant="body2">
@@ -166,7 +173,10 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
   );
 };
 
-export const StreamList: React.FC<StreamListProps> = ({ streams, isConnected }) => {
+export const StreamList: React.FC<StreamListProps> = ({
+  streams,
+  isConnected,
+}) => {
   if (!isConnected) {
     return (
       <Card>
@@ -192,7 +202,9 @@ export const StreamList: React.FC<StreamListProps> = ({ streams, isConnected }) 
             <Typography variant="h6">Active Streams</Typography>
           </Box>
           <Box textAlign="center" py={4}>
-            <PlayCircleOutline sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+            <PlayCircleOutline
+              sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
+            />
             <Typography variant="h6" color="text.secondary">
               No active streams
             </Typography>
@@ -208,7 +220,12 @@ export const StreamList: React.FC<StreamListProps> = ({ streams, isConnected }) 
   return (
     <Card>
       <CardContent>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          mb={3}
+        >
           <Box display="flex" alignItems="center">
             <Videocam color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6">Active Streams</Typography>

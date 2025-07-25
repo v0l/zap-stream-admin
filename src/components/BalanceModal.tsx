@@ -186,8 +186,8 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
           <Typography variant="subtitle2" color="text.secondary">
             Current Balance
           </Typography>
-          <MilliSatsDisplay 
-            milliSats={user.balance} 
+          <MilliSatsDisplay
+            milliSats={user.balance}
             color="success.main"
             variant="h4"
           />
