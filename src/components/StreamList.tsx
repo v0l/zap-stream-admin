@@ -15,6 +15,7 @@ import {
   IconButton,
   Collapse,
   Avatar,
+  Grid,
 } from "@mui/material";
 import {
   PlayCircleOutline,
@@ -131,7 +132,7 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
               <Typography variant="h6" gutterBottom component="div">
                 Stream Details
               </Typography>
-              <Box display="flex" gap={3} flexWrap="wrap">
+              <Box display="flex" gap={3} flexWrap="wrap" mb={2}>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
                     Frame Count
@@ -164,7 +165,58 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
                     {stream.ip_address}
                   </Typography>
                 </Box>
+                {stream.viewers !== undefined && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Viewers
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      {stream.viewers}
+                    </Typography>
+                  </Box>
+                )}
+                {stream.endpoint_name && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Endpoint
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      {stream.endpoint_name}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
+
+              {/* Endpoint Bandwidth Details */}
+              {stream.endpoint_stats && Object.keys(stream.endpoint_stats).length > 0 && (
+                <Box>
+                  <Typography variant="subtitle1" gutterBottom sx={{ mt: 2, mb: 1 }}>
+                    Endpoint Bandwidth
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {Object.entries(stream.endpoint_stats).map(([endpointName, stats]) => (
+                      <Grid item xs={12} sm={6} md={4} key={endpointName}>
+                        <Box
+                          sx={{
+                            p: 2,
+                            border: "1px solid",
+                            borderColor: "divider",
+                            borderRadius: 1,
+                            bgcolor: "background.default",
+                          }}
+                        >
+                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                            {stats.name}
+                          </Typography>
+                          <Typography variant="body1" fontWeight="bold" color="primary">
+                            {formatBitrate(stats.bitrate)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
             </Box>
           </Collapse>
         </TableCell>
