@@ -31,6 +31,11 @@ export interface SubscribeOverallMessage extends WebSocketMessage {
   data: null;
 }
 
+export interface EndpointStats {
+  name: string;
+  bitrate: number;
+}
+
 export interface StreamMetrics {
   stream_id: string;
   started_at: string;
@@ -42,6 +47,10 @@ export interface StreamMetrics {
   ingress_name: string;
   input_resolution: string;
   ip_address: string;
+  viewers?: number;
+  endpoint_name?: string;
+  endpoint_stats?: Record<string, EndpointStats>;
+  timestamp?: number;
 }
 
 export interface StreamMetricsMessage extends WebSocketMessage {
@@ -53,8 +62,11 @@ export interface OverallMetrics {
   total_streams: number;
   total_viewers: number;
   total_bandwidth: number;
-  cpu_load: number;
+  total_bandwidth_mbps?: number; // New field from API docs
+  system_load?: number; // Renamed from cpu_load  
+  cpu_load: number; // Keep for backward compatibility
   memory_load: number;
+  memory_usage_percent?: number; // New field from API docs
   uptime_seconds: number;
   timestamp: number;
 }

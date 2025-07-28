@@ -27,7 +27,7 @@ export const DashboardPage: React.FC = () => {
         <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
           System Overview
         </Typography>
-        <SystemMetrics metrics={metrics} />
+        <SystemMetrics metrics={metrics} streams={streams} />
       </Box>
 
       {/* Active Streams */}

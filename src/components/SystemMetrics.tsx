@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent, Typography, Box, Grid } from "@mui/material";
+import { Card, CardContent, Typography, Box, Grid, Divider } from "@mui/material";
 import {
   Computer,
   Memory,
@@ -8,13 +8,14 @@ import {
   NetworkCheck,
   PlayCircleOutline,
 } from "@mui/icons-material";
-import { OverallMetrics } from "../types/websocket";
+import { OverallMetrics, StreamMetrics } from "../types/websocket";
 
 interface SystemMetricsProps {
   metrics: OverallMetrics | null;
+  streams?: StreamMetrics[];
 }
 
-export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics }) => {
+export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics, streams = [] }) => {
   const formatBitrate = (bps: number): string => {
     if (bps === 0) return "0 Mbps";
     const mbps = bps / (1000 * 1000);
@@ -34,6 +35,23 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics }) => {
       return `${minutes}m`;
     }
   };
+
+  // Aggregate endpoint bandwidth from all streams
+  const aggregateEndpointBandwidth = () => {
+    const aggregated: Record<string, number> = {};
+    
+    streams.forEach(stream => {
+      if (stream.endpoint_stats) {
+        Object.entries(stream.endpoint_stats).forEach(([endpointName, stats]) => {
+          aggregated[endpointName] = (aggregated[endpointName] || 0) + stats.bitrate;
+        });
+      }
+    });
+    
+    return aggregated;
+  };
+
+  const endpointBandwidth = aggregateEndpointBandwidth();
 
   return (
     <Grid container spacing={2}>
@@ -110,7 +128,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics }) => {
             <Box display="flex" alignItems="center">
               <NetworkCheck color="primary" sx={{ mr: 1, fontSize: 18 }} />
               <Typography variant="subtitle2" fontWeight="medium">
-                Bandwidth
+                Total Bandwidth
               </Typography>
             </Box>
             <Typography
@@ -224,6 +242,44 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics }) => {
           </CardContent>
         </Card>
       </Grid>
+
+      {/* Endpoint Bandwidth Breakdown */}
+      {Object.keys(endpointBandwidth).length > 0 && (
+        <Grid item xs={12}>
+          <Card>
+            <CardContent sx={{ py: 2 }}>
+              <Box display="flex" alignItems="center" mb={2}>
+                <NetworkCheck color="primary" sx={{ mr: 1, fontSize: 20 }} />
+                <Typography variant="h6" fontWeight="medium">
+                  Bandwidth by Endpoint
+                </Typography>
+              </Box>
+              <Grid container spacing={2}>
+                {Object.entries(endpointBandwidth).map(([endpointName, bitrate]) => (
+                  <Grid item xs={12} sm={6} md={3} key={endpointName}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 1,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        {endpointName}
+                      </Typography>
+                      <Typography variant="h6" color="primary" fontWeight="bold">
+                        {formatBitrate(bitrate)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+      )}
     </Grid>
   );
 };
