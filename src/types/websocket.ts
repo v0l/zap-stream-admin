@@ -53,6 +53,7 @@ export interface StreamMetrics {
   timestamp?: number;
   node_name?: string;
   pubkey?: string;
+  user_id?: number;
 }
 
 export interface StreamMetricsMessage extends WebSocketMessage {
@@ -65,7 +66,7 @@ export interface OverallMetrics {
   total_viewers: number;
   total_bandwidth: number;
   total_bandwidth_mbps?: number; // New field from API docs
-  system_load?: number; // Renamed from cpu_load  
+  system_load?: number; // Renamed from cpu_load
   cpu_load: number; // Keep for backward compatibility
   memory_load: number;
   memory_usage_percent?: number; // New field from API docs

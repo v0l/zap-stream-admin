@@ -32,6 +32,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useLogin } from "../services/login";
 import { UserProfile } from "./UserProfile";
 import { MilliSatsDisplay } from "./MilliSatsDisplay";
+import { NostrPrefix, tryParseNostrLink } from "@snort/system";
 
 interface UserListProps {
   onEditUser: (user: User) => void;
@@ -49,6 +50,7 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
+    const [searchError, setSearchError] = useState<string | null>(null);
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>(
       {
         page: 0,
@@ -63,10 +65,38 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
 
       setLoading(true);
       try {
+        let searchQuery = search;
+
+        // Try to parse npub/nostr link if search has content
+        if (search.trim()) {
+          try {
+            const parsed = tryParseNostrLink(search.trim());
+            if (
+              parsed?.type === NostrPrefix.Profile ||
+              parsed?.type === NostrPrefix.PublicKey
+            ) {
+              searchQuery = parsed.id;
+              setSearchError(null);
+            } else if (parsed) {
+              setSearchError("Only user profiles (npub) are supported");
+              return;
+            } else {
+              setSearchError("Invalid data");
+              return;
+            }
+          } catch (error) {
+            // If parsing fails, treat as regular search
+            searchQuery = search;
+            setSearchError(null);
+          }
+        } else {
+          setSearchError(null);
+        }
+
         const response = await adminAPI.getUsers(
           paginationModel.page,
           paginationModel.pageSize,
-          search || undefined,
+          searchQuery || undefined,
         );
         setUsers(response.users);
         setTotalRows(response.total);
@@ -84,6 +114,29 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
     useImperativeHandle(ref, () => ({
       refresh: loadUsers,
     }));
+
+    const handleSearchChange = (value: string) => {
+      setSearch(value);
+
+      // Clear error when input is empty
+      if (!value.trim()) {
+        setSearchError(null);
+        return;
+      }
+
+      // Try to parse immediately for validation feedback
+      try {
+        const parsed = tryParseNostrLink(value.trim());
+        if (parsed && parsed.type !== "pubkey") {
+          setSearchError("Only user profiles (npub) are supported");
+        } else {
+          setSearchError(null);
+        }
+      } catch (error) {
+        // If it doesn't parse as nostr link, it's fine - treat as regular search
+        setSearchError(null);
+      }
+    };
 
     const formatDate = (timestamp: number) => {
       return formatDistanceToNow(new Date(timestamp * 1000), {
@@ -224,9 +277,11 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
             <Typography variant="h6">User Management</Typography>
             <TextField
               size="small"
-              placeholder="Search by public key..."
+              placeholder="Search by public key or npub..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              error={!!searchError}
+              helperText={searchError}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -234,7 +289,7 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
                   </InputAdornment>
                 ),
               }}
-              sx={{ minWidth: 250 }}
+              sx={{ minWidth: 300 }}
             />
           </Box>
 

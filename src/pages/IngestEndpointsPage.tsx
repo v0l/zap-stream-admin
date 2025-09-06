@@ -141,7 +141,6 @@ export const IngestEndpointsPage: React.FC = () => {
     ));
   };
 
-
   const handleCopyUrl = async (url: string, type: string) => {
     try {
       await navigator.clipboard.writeText(url);
@@ -228,16 +227,29 @@ export const IngestEndpointsPage: React.FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
                         {endpoint.urls && endpoint.urls.length > 0 ? (
                           endpoint.urls.map((url, index) => (
                             <Box
                               key={index}
-                              sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
                             >
                               <Typography
                                 variant="body2"
-                                sx={{ fontFamily: "monospace", fontSize: "0.875rem" }}
+                                sx={{
+                                  fontFamily: "monospace",
+                                  fontSize: "0.875rem",
+                                }}
                               >
                                 {url}
                               </Typography>
@@ -273,34 +285,34 @@ export const IngestEndpointsPage: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell align="right">
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          justifyContent="flex-end"
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        justifyContent="flex-end"
+                      >
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEditEndpoint(endpoint)}
+                          title="Edit endpoint"
                         >
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditEndpoint(endpoint)}
-                            title="Edit endpoint"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeleteEndpoint(endpoint.id)}
-                            disabled={deleteLoading === endpoint.id}
-                            title="Delete endpoint"
-                          >
-                            {deleteLoading === endpoint.id ? (
-                              <CircularProgress size={16} />
-                            ) : (
-                              <DeleteIcon />
-                            )}
-                          </IconButton>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteEndpoint(endpoint.id)}
+                          disabled={deleteLoading === endpoint.id}
+                          title="Delete endpoint"
+                        >
+                          {deleteLoading === endpoint.id ? (
+                            <CircularProgress size={16} />
+                          ) : (
+                            <DeleteIcon />
+                          )}
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </TableBody>

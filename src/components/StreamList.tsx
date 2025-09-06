@@ -28,6 +28,7 @@ import {
 import { StreamMetrics } from "../types/websocket";
 import { useUserProfile } from "@snort/system-react";
 import { hexToBech32 } from "@snort/shared";
+import { Link } from "react-router-dom";
 
 interface StreamListProps {
   streams: StreamMetrics[];
@@ -41,16 +42,21 @@ interface StreamRowProps {
 interface StreamProfileAvatarProps {
   pubkey: string;
   isLive: boolean;
+  userId?: number;
 }
 
-const StreamProfileAvatar: React.FC<StreamProfileAvatarProps> = ({ pubkey, isLive }) => {
+const StreamProfileAvatar: React.FC<StreamProfileAvatarProps> = ({
+  pubkey,
+  isLive,
+  userId,
+}) => {
   const userProfile = useUserProfile(pubkey);
-  
+
   const displayName = userProfile?.display_name || userProfile?.name || "";
   const fallbackName = hexToBech32("npub", pubkey).slice(0, 12);
   const userName = displayName || fallbackName;
-  
-  return (
+
+  const avatar = (
     <Avatar
       src={userProfile?.picture}
       sx={{
@@ -59,10 +65,24 @@ const StreamProfileAvatar: React.FC<StreamProfileAvatarProps> = ({ pubkey, isLiv
         bgcolor: "#737373",
         color: "#fafafa",
         border: `3px solid ${isLive ? "#22c55e" : "#6b7280"}`,
+        cursor: userId ? "pointer" : "default",
+        "&:hover": userId
+          ? {
+              opacity: 0.8,
+            }
+          : {},
       }}
     >
       {userName.charAt(0).toUpperCase()}
     </Avatar>
+  );
+
+  return userId ? (
+    <Link to={`/users/${userId}`} style={{ textDecoration: "none" }}>
+      {avatar}
+    </Link>
+  ) : (
+    avatar
   );
 };
 
@@ -124,9 +144,10 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
         <TableCell>
           <Box display="flex" alignItems="center">
             {stream.pubkey ? (
-              <StreamProfileAvatar 
-                pubkey={stream.pubkey} 
+              <StreamProfileAvatar
+                pubkey={stream.pubkey}
                 isLive={isLive}
+                userId={stream.user_id}
               />
             ) : (
               <Avatar
@@ -140,7 +161,8 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
                 {stream.stream_id}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {stream.ingress_name} • {stream.endpoint_name} ({stream.viewers || 0} viewers)
+                {stream.ingress_name} • {stream.endpoint_name} (
+                {stream.viewers || 0} viewers)
               </Typography>
             </Box>
           </Box>
@@ -163,18 +185,24 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
         </TableCell>
         <TableCell>
           <Typography variant="body2">
-            {formatBitrate(stream.ingress_throughput_bps || 
-              (stream.endpoint_stats && Object.values(stream.endpoint_stats)[0]?.bitrate) || 0)}
+            {formatBitrate(
+              stream.ingress_throughput_bps ||
+                (stream.endpoint_stats &&
+                  Object.values(stream.endpoint_stats)[0]?.bitrate) ||
+                0,
+            )}
           </Typography>
         </TableCell>
         <TableCell>
-          <Typography variant="body2">
-            {stream.node_name || "N/A"}
-          </Typography>
+          <Typography variant="body2">{stream.node_name || "N/A"}</Typography>
         </TableCell>
         <TableCell>
           <Typography variant="body2">
-            {formatDuration(Math.floor((currentTime - new Date(stream.started_at).getTime()) / 1000))}
+            {formatDuration(
+              Math.floor(
+                (currentTime - new Date(stream.started_at).getTime()) / 1000,
+              ),
+            )}
           </Typography>
         </TableCell>
         <TableCell>
@@ -222,35 +250,50 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
               </Box>
 
               {/* Endpoint Bandwidth Details */}
-              {stream.endpoint_stats && Object.keys(stream.endpoint_stats).length > 0 && (
-                <Box>
-                  <Typography variant="subtitle1" gutterBottom sx={{ mt: 2, mb: 1 }}>
-                    Endpoint Bandwidth
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {Object.entries(stream.endpoint_stats).map(([endpointName, stats]) => (
-                      <Grid item xs={12} sm={6} md={4} key={endpointName}>
-                        <Box
-                          sx={{
-                            p: 2,
-                            border: "1px solid",
-                            borderColor: "divider",
-                            borderRadius: 1,
-                            bgcolor: "background.default",
-                          }}
-                        >
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
-                            {stats.name}
-                          </Typography>
-                          <Typography variant="body1" fontWeight="bold" color="primary">
-                            {formatBitrate(stats.bitrate)}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              )}
+              {stream.endpoint_stats &&
+                Object.keys(stream.endpoint_stats).length > 0 && (
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      gutterBottom
+                      sx={{ mt: 2, mb: 1 }}
+                    >
+                      Endpoint Bandwidth
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {Object.entries(stream.endpoint_stats).map(
+                        ([endpointName, stats]) => (
+                          <Grid item xs={12} sm={6} md={4} key={endpointName}>
+                            <Box
+                              sx={{
+                                p: 2,
+                                border: "1px solid",
+                                borderColor: "divider",
+                                borderRadius: 1,
+                                bgcolor: "background.default",
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                gutterBottom
+                              >
+                                {stats.name}
+                              </Typography>
+                              <Typography
+                                variant="body1"
+                                fontWeight="bold"
+                                color="primary"
+                              >
+                                {formatBitrate(stats.bitrate)}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        ),
+                      )}
+                    </Grid>
+                  </Box>
+                )}
             </Box>
           </Collapse>
         </TableCell>

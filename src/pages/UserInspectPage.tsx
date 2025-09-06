@@ -268,6 +268,33 @@ export const UserInspectPage: React.FC = () => {
       ),
     },
     {
+      field: "average_cost",
+      headerName: "Avg Cost",
+      width: 120,
+      renderCell: (params) => {
+        const stream = params.row;
+        const totalMins = Math.max(1, Math.floor(stream.duration / 60)); // Avoid division by zero
+        const avgCost = stream.cost / totalMins;
+
+        return (
+          <Box display="flex" alignItems="center" height="100%">
+            <MilliSatsDisplay
+              milliSats={avgCost}
+              color="info.main"
+              variant="body2"
+            />
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ ml: 0.5 }}
+            >
+              /min
+            </Typography>
+          </Box>
+        );
+      },
+    },
+    {
       field: "tags",
       headerName: "Tags",
       width: 200,
