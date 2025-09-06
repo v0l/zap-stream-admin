@@ -52,6 +52,7 @@ export interface StreamMetrics {
   endpoint_stats?: Record<string, EndpointStats>;
   timestamp?: number;
   node_name?: string;
+  pubkey?: string;
 }
 
 export interface StreamMetricsMessage extends WebSocketMessage {

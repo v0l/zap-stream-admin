@@ -26,6 +26,8 @@ import {
   AspectRatio,
 } from "@mui/icons-material";
 import { StreamMetrics } from "../types/websocket";
+import { useUserProfile } from "@snort/system-react";
+import { hexToBech32 } from "@snort/shared";
 
 interface StreamListProps {
   streams: StreamMetrics[];
@@ -35,6 +37,34 @@ interface StreamListProps {
 interface StreamRowProps {
   stream: StreamMetrics;
 }
+
+interface StreamProfileAvatarProps {
+  pubkey: string;
+  isLive: boolean;
+}
+
+const StreamProfileAvatar: React.FC<StreamProfileAvatarProps> = ({ pubkey, isLive }) => {
+  const userProfile = useUserProfile(pubkey);
+  
+  const displayName = userProfile?.display_name || userProfile?.name || "";
+  const fallbackName = hexToBech32("npub", pubkey).slice(0, 12);
+  const userName = displayName || fallbackName;
+  
+  return (
+    <Avatar
+      src={userProfile?.picture}
+      sx={{
+        width: 40,
+        height: 40,
+        bgcolor: "#737373",
+        color: "#fafafa",
+        border: `3px solid ${isLive ? "#22c55e" : "#6b7280"}`,
+      }}
+    >
+      {userName.charAt(0).toUpperCase()}
+    </Avatar>
+  );
+};
 
 const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
   const [expanded, setExpanded] = useState(false);
@@ -93,12 +123,19 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
       <TableRow hover>
         <TableCell>
           <Box display="flex" alignItems="center">
-            <Avatar
-              sx={{ mr: 2, bgcolor: isLive ? "success.main" : "grey.400" }}
-            >
-              <PlayCircleOutline />
-            </Avatar>
-            <Box>
+            {stream.pubkey ? (
+              <StreamProfileAvatar 
+                pubkey={stream.pubkey} 
+                isLive={isLive}
+              />
+            ) : (
+              <Avatar
+                sx={{ mr: 2, bgcolor: isLive ? "success.main" : "grey.400" }}
+              >
+                <PlayCircleOutline />
+              </Avatar>
+            )}
+            <Box ml={2}>
               <Typography variant="body1" fontWeight="medium">
                 {stream.stream_id}
               </Typography>
