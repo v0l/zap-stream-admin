@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -38,11 +38,30 @@ interface StreamRowProps {
 
 const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
   const [expanded, setExpanded] = useState(false);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const formatBitrate = (bps: number): string => {
     if (bps === 0) return "0 Mbps";
     const mbps = bps / (1000 * 1000);
     return mbps.toFixed(2) + " Mbps";
+  };
+
+  const formatDuration = (duration: number): string => {
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
   };
 
   const getStreamHealth = (
@@ -84,7 +103,7 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
                 {stream.stream_id}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {stream.ingress_name}
+                {stream.ingress_name} • {stream.endpoint_name} ({stream.viewers || 0} viewers)
               </Typography>
             </Box>
           </Box>
@@ -107,12 +126,18 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
         </TableCell>
         <TableCell>
           <Typography variant="body2">
-            {formatBitrate(stream.ingress_throughput_bps)}
+            {formatBitrate(stream.ingress_throughput_bps || 
+              (stream.endpoint_stats && Object.values(stream.endpoint_stats)[0]?.bitrate) || 0)}
           </Typography>
         </TableCell>
         <TableCell>
           <Typography variant="body2">
-            {new Date(stream.started_at).toLocaleString()}
+            {stream.node_name || "N/A"}
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="body2">
+            {formatDuration(Math.floor((currentTime - new Date(stream.started_at).getTime()) / 1000))}
           </Typography>
         </TableCell>
         <TableCell>
@@ -126,7 +151,7 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
           <Collapse in={expanded} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Typography variant="h6" gutterBottom component="div">
@@ -151,40 +176,12 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
                 </Box>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Ingress Type
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium">
-                    {stream.ingress_name}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
                     IP Address
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">
                     {stream.ip_address}
                   </Typography>
                 </Box>
-                {stream.viewers !== undefined && (
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Viewers
-                    </Typography>
-                    <Typography variant="body1" fontWeight="medium">
-                      {stream.viewers}
-                    </Typography>
-                  </Box>
-                )}
-                {stream.endpoint_name && (
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Endpoint
-                    </Typography>
-                    <Typography variant="body1" fontWeight="medium">
-                      {stream.endpoint_name}
-                    </Typography>
-                  </Box>
-                )}
               </Box>
 
               {/* Endpoint Bandwidth Details */}
@@ -307,7 +304,8 @@ export const StreamList: React.FC<StreamListProps> = ({
                   </Box>
                 </TableCell>
                 <TableCell>Bitrate</TableCell>
-                <TableCell>Started</TableCell>
+                <TableCell>Node</TableCell>
+                <TableCell>Duration</TableCell>
                 <TableCell width={48}></TableCell>
               </TableRow>
             </TableHead>

@@ -36,22 +36,32 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics, streams =
     }
   };
 
-  // Aggregate endpoint bandwidth from all streams
-  const aggregateEndpointBandwidth = () => {
-    const aggregated: Record<string, number> = {};
-    
-    streams.forEach(stream => {
-      if (stream.endpoint_stats) {
-        Object.entries(stream.endpoint_stats).forEach(([endpointName, stats]) => {
-          aggregated[endpointName] = (aggregated[endpointName] || 0) + stats.bitrate;
-        });
+  // Calculate RTMP and SRT bandwidth separately
+  const getRtmpBandwidth = () => {
+    return streams.reduce((total, stream) => {
+      if (stream.endpoint_stats?.RTMP) {
+        return total + stream.endpoint_stats.RTMP.bitrate;
       }
-    });
-    
-    return aggregated;
+      return total;
+    }, 0);
   };
 
-  const endpointBandwidth = aggregateEndpointBandwidth();
+  const getSrtBandwidth = () => {
+    return streams.reduce((total, stream) => {
+      if (stream.endpoint_stats?.SRT) {
+        return total + stream.endpoint_stats.SRT.bitrate;
+      }
+      return total;
+    }, 0);
+  };
+
+  const rtmpBandwidth = getRtmpBandwidth();
+  const srtBandwidth = getSrtBandwidth();
+
+  // Calculate values from stream data instead of global metrics
+  const activeStreams = streams.length;
+  const totalViewers = streams.reduce((total, stream) => total + (stream.viewers || 0), 0);
+  const totalBandwidth = rtmpBandwidth + srtBandwidth;
 
   return (
     <Grid container spacing={2}>
@@ -79,7 +89,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics, streams =
               fontWeight="bold"
               align="center"
             >
-              {metrics?.total_streams ?? "-"}
+              {activeStreams}
             </Typography>
           </CardContent>
         </Card>
@@ -108,7 +118,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics, streams =
               fontWeight="bold"
               align="center"
             >
-              {metrics?.total_viewers ?? "-"}
+              {totalViewers}
             </Typography>
           </CardContent>
         </Card>
@@ -137,7 +147,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics, streams =
               fontWeight="bold"
               align="center"
             >
-              {metrics ? formatBitrate(metrics.total_bandwidth) : "-"}
+              {formatBitrate(totalBandwidth)}
             </Typography>
           </CardContent>
         </Card>
@@ -243,43 +253,64 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics, streams =
         </Card>
       </Grid>
 
-      {/* Endpoint Bandwidth Breakdown */}
-      {Object.keys(endpointBandwidth).length > 0 && (
-        <Grid item xs={12}>
-          <Card>
-            <CardContent sx={{ py: 2 }}>
-              <Box display="flex" alignItems="center" mb={2}>
-                <NetworkCheck color="primary" sx={{ mr: 1, fontSize: 20 }} />
-                <Typography variant="h6" fontWeight="medium">
-                  Bandwidth by Endpoint
-                </Typography>
-              </Box>
-              <Grid container spacing={2}>
-                {Object.entries(endpointBandwidth).map(([endpointName, bitrate]) => (
-                  <Grid item xs={12} sm={6} md={3} key={endpointName}>
-                    <Box
-                      sx={{
-                        p: 2,
-                        border: "1px solid",
-                        borderColor: "divider",
-                        borderRadius: 1,
-                        textAlign: "center",
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {endpointName}
-                      </Typography>
-                      <Typography variant="h6" color="primary" fontWeight="bold">
-                        {formatBitrate(bitrate)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-      )}
+      {/* RTMP and SRT Bandwidth */}
+      <Grid item xs={12} sm={6}>
+        <Card sx={{ height: "100px" }}>
+          <CardContent
+            sx={{
+              py: 1.5,
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box display="flex" alignItems="center">
+              <NetworkCheck color="primary" sx={{ mr: 1, fontSize: 18 }} />
+              <Typography variant="subtitle2" fontWeight="medium">
+                RTMP Bandwidth
+              </Typography>
+            </Box>
+            <Typography
+              variant="h5"
+              color="primary"
+              fontWeight="bold"
+              align="center"
+            >
+              {formatBitrate(rtmpBandwidth)}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} sm={6}>
+        <Card sx={{ height: "100px" }}>
+          <CardContent
+            sx={{
+              py: 1.5,
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box display="flex" alignItems="center">
+              <NetworkCheck color="primary" sx={{ mr: 1, fontSize: 18 }} />
+              <Typography variant="subtitle2" fontWeight="medium">
+                SRT Bandwidth
+              </Typography>
+            </Box>
+            <Typography
+              variant="h5"
+              color="primary"
+              fontWeight="bold"
+              align="center"
+            >
+              {formatBitrate(srtBandwidth)}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
     </Grid>
   );
 };
