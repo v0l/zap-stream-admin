@@ -4,24 +4,16 @@ import { useLogin } from "../services/login";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { SystemMetrics } from "../components/SystemMetrics";
 import { StreamList } from "../components/StreamList";
+import { NodeResourceUsage } from "../components/NodeResourceUsage";
 
 export const DashboardPage: React.FC = () => {
   const { signer } = useLogin();
-  const { metrics, streams, isConnected, isAdmin, error } = useWebSocket(
+  const { metrics, streams, nodeMetrics, isConnected, isAdmin, error } = useWebSocket(
     signer || null,
   );
 
   return (
     <Container maxWidth="xl" sx={{ mt: 3 }}>
-      <Box mb={4}>
-        <Typography variant="h4" gutterBottom>
-          Admin Dashboard
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Real-time system monitoring and stream management
-        </Typography>
-      </Box>
-
       {/* System Metrics Overview */}
       <Box mb={3}>
         <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
@@ -29,6 +21,16 @@ export const DashboardPage: React.FC = () => {
         </Typography>
         <SystemMetrics metrics={metrics} streams={streams} />
       </Box>
+
+      {/* Node Resource Usage - Only show for admins */}
+      {isAdmin && (
+        <Box mb={3}>
+          <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
+            Node Resource Usage
+          </Typography>
+          <NodeResourceUsage nodeMetrics={nodeMetrics} isConnected={isConnected} />
+        </Box>
+      )}
 
       {/* Active Streams */}
       <Box mb={3}>

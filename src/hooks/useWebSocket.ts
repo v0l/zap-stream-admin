@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { EventSigner, EventBuilder } from "@snort/system";
-import { OverallMetrics, StreamMetrics } from "../types/websocket";
+import { OverallMetrics, StreamMetrics, NodeInfo } from "../types/websocket";
 import { getSelectedAPIEndpoint } from "../services/api";
 
 function getWebSocketURL(): string {
@@ -11,6 +11,7 @@ function getWebSocketURL(): string {
 export function useWebSocket(signer: EventSigner | null) {
   const [metrics, setMetrics] = useState<OverallMetrics | null>(null);
   const [streams, setStreams] = useState<StreamMetrics[]>([]);
+  const [nodeMetrics, setNodeMetrics] = useState<NodeInfo[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +115,26 @@ export function useWebSocket(signer: EventSigner | null) {
             });
             break;
 
+          case "NodeMetrics":
+            // Update node metrics
+            setNodeMetrics((prevNodes) => {
+              const nodeName = message.data.node_name;
+              const existingIndex = prevNodes.findIndex(
+                (n) => n.node_name === nodeName,
+              );
+
+              if (existingIndex >= 0) {
+                // Update existing node
+                const newNodes = [...prevNodes];
+                newNodes[existingIndex] = message.data;
+                return newNodes;
+              } else {
+                // Add new node
+                return [...prevNodes, message.data];
+              }
+            });
+            break;
+
           case "Error":
             setError(message.data.message);
             break;
@@ -129,6 +150,7 @@ export function useWebSocket(signer: EventSigner | null) {
       setIsAdmin(false);
       setMetrics(null);
       setStreams([]);
+      setNodeMetrics([]);
     };
 
     ws.onerror = (error) => {
@@ -141,5 +163,5 @@ export function useWebSocket(signer: EventSigner | null) {
     };
   }, [signer]);
 
-  return { metrics, streams, isConnected, isAdmin, error };
+  return { metrics, streams, nodeMetrics, isConnected, isAdmin, error };
 }

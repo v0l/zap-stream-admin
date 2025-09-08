@@ -79,6 +79,19 @@ export interface OverallMetricsMessage extends WebSocketMessage {
   data: OverallMetrics;
 }
 
+export interface NodeInfo {
+  node_name: string;
+  cpu: number;
+  memory_used: number;
+  memory_total: number;
+  uptime: number;
+}
+
+export interface NodeMetricsMessage extends WebSocketMessage {
+  type: "NodeMetrics";
+  data: NodeInfo;
+}
+
 export interface ErrorMessage extends WebSocketMessage {
   type: "Error";
   data: {
@@ -90,6 +103,7 @@ export type WebSocketIncomingMessage =
   | AuthResponse
   | StreamMetricsMessage
   | OverallMetricsMessage
+  | NodeMetricsMessage
   | ErrorMessage;
 
 export type WebSocketOutgoingMessage =
