@@ -152,7 +152,7 @@ export function useLogin() {
     }
 
     if (!currentSigner) return null;
-    return new AdminAPI(currentSigner);
+    return AdminAPI.current(currentSigner);
   }, [signer, isAuthenticated]);
 
   const loginWithNip07 = async () => {
@@ -188,6 +188,7 @@ export function useLogin() {
 
   const logout = () => {
     loginStore.logout();
+    localStorage.clear();
     setError(null);
   };
 

@@ -19,10 +19,12 @@ import {
   History as HistoryIcon,
   Cable as IngestIcon,
   Storage as ServerIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLogin } from "../services/login";
 import { UserProfile } from "./UserProfile";
+import { ServerSelectorDialog } from "./ServerSelectorDialog";
 import {
   User,
   getAPIEndpoints,
@@ -37,10 +39,11 @@ export const Navigation: React.FC = () => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const profileRef = React.useRef<HTMLElement>(null);
 
-  const [apiEndpoints] = React.useState(() => getAPIEndpoints());
+  const [apiEndpoints, setApiEndpoints] = React.useState(() => getAPIEndpoints());
   const [selectedEndpoint, setSelectedEndpointState] = React.useState(() =>
     getSelectedAPIEndpoint(),
   );
+  const [showServerDialog, setShowServerDialog] = React.useState(false);
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -63,11 +66,23 @@ export const Navigation: React.FC = () => {
 
   const handleEndpointChange = (endpointId: string) => {
     setSelectedAPIEndpoint(endpointId);
-    setSelectedEndpointState(
-      apiEndpoints.find((ep) => ep.id === endpointId) || apiEndpoints[0],
-    );
+    const updatedEndpoints = getAPIEndpoints();
+    const newSelectedEndpoint = updatedEndpoints.find((ep) => ep.id === endpointId) || updatedEndpoints[0];
+
+    setApiEndpoints(updatedEndpoints);
+    setSelectedEndpointState(newSelectedEndpoint);
+
     // Reload the page to reinitialize with new API endpoint
     window.location.reload();
+  };
+
+  const handleServerDialogClose = () => {
+    setShowServerDialog(false);
+    // Refresh endpoints in case they were modified
+    const updatedEndpoints = getAPIEndpoints();
+    const currentSelected = getSelectedAPIEndpoint();
+    setApiEndpoints(updatedEndpoints);
+    setSelectedEndpointState(currentSelected);
   };
 
   const isMenuOpen = Boolean(anchorEl);
@@ -126,59 +141,75 @@ export const Navigation: React.FC = () => {
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           {/* API Endpoint Selector */}
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <Select
-              value={selectedEndpoint.id}
-              onChange={(e) => handleEndpointChange(e.target.value)}
-              variant="outlined"
-              size="small"
-              sx={{
-                color: "white",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(255, 255, 255, 0.3)",
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(255, 255, 255, 0.5)",
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(255, 255, 255, 0.7)",
-                },
-                "& .MuiSvgIcon-root": {
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <Select
+                value={selectedEndpoint.id}
+                onChange={(e) => handleEndpointChange(e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{
                   color: "white",
-                },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.3)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.5)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.7)",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "white",
+                  },
+                }}
+                renderValue={(value) => {
+                  const endpoint = apiEndpoints.find((ep) => ep.id === value);
+                  return (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <ServerIcon fontSize="small" />
+                      <Typography variant="body2" sx={{ color: "white" }}>
+                        {endpoint?.name || "Unknown"}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+              >
+                {apiEndpoints.map((endpoint) => (
+                  <MenuItem key={endpoint.id} value={endpoint.id}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight="medium">
+                        {endpoint.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {endpoint.url}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <IconButton
+              size="small"
+              onClick={() => setShowServerDialog(true)}
+              sx={{
+                color: "rgba(255, 255, 255, 0.7)",
+                "&:hover": {
+                  color: "white",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                }
               }}
-              renderValue={(value) => {
-                const endpoint = apiEndpoints.find((ep) => ep.id === value);
-                return (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <ServerIcon fontSize="small" />
-                    <Typography variant="body2" sx={{ color: "white" }}>
-                      {endpoint?.name || "Unknown"}
-                    </Typography>
-                  </Box>
-                );
-              }}
+              title="Manage API Endpoints"
             >
-              {apiEndpoints.map((endpoint) => (
-                <MenuItem key={endpoint.id} value={endpoint.id}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <Typography variant="body2" fontWeight="medium">
-                      {endpoint.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {endpoint.url}
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              <SettingsIcon fontSize="small" />
+            </IconButton>
+          </Box>
 
           {loggedInUser && (
             <Box sx={{ display: { xs: "none", sm: "block" } }} ref={profileRef}>
@@ -228,6 +259,12 @@ export const Navigation: React.FC = () => {
             Logout
           </MenuItem>
         </Menu>
+
+        <ServerSelectorDialog
+          open={showServerDialog}
+          onClose={handleServerDialogClose}
+          onEndpointChange={handleEndpointChange}
+        />
       </Toolbar>
     </AppBar>
   );

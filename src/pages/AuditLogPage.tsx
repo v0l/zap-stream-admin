@@ -176,7 +176,7 @@ export const AuditLogPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
 
   const adminAPI = React.useMemo(() => {
-    return signer ? new AdminAPI(signer) : null;
+    return signer ? AdminAPI.current(signer) : null;
   }, [signer]);
 
   const loadAuditLogs = async (pageNum: number, limit: number) => {

@@ -8,8 +8,6 @@ export interface APIEndpoint {
 
 const DEFAULT_API_ENDPOINTS: APIEndpoint[] = [
   { id: "production", name: "Production", url: "https://api-core.zap.stream" },
-  { id: "backup", name: "Backup", url: "https://backup.zap.stream" },
-  { id: "local", name: "Local Development", url: "http://localhost:8080" },
 ];
 
 const STORAGE_KEY = "zap-stream-api-endpoints";
@@ -64,6 +62,78 @@ export function removeAPIEndpoint(endpointId: string): void {
 
   if (getSelectedEndpointId() === endpointId) {
     setSelectedAPIEndpoint(filtered[0]?.id || "production");
+  }
+}
+
+export async function testAPIEndpointConnectivity(url: string, signer: EventSigner): Promise<{
+  success: boolean;
+  message: string;
+  responseTime?: number;
+}> {
+  const startTime = Date.now();
+  try {
+    const api = new AdminAPI(url, signer);
+    const result = await api.getUsers(0, 1);
+    const responseTime = Date.now() - startTime;
+    return {
+      success: true,
+      message: `API server working (${result.total} users)`,
+      responseTime,
+    };
+  } catch (error) {
+    const responseTime = Date.now() - startTime;
+
+    if (error instanceof Error) {
+      if (error.message.includes("HTTP error! status: 401")) {
+        return {
+          success: false,
+          message: "Authentication failed - invalid credentials",
+          responseTime,
+        };
+      } else if (error.message.includes("HTTP error! status: 403")) {
+        return {
+          success: false,
+          message: "Access denied - admin privileges required",
+          responseTime,
+        };
+      } else if (error.message.includes("HTTP error! status: 404")) {
+        return {
+          success: false,
+          message: "API endpoint not found - check server version",
+          responseTime,
+        };
+      } else if (error.message.includes("HTTP error! status: 5")) {
+        return {
+          success: false,
+          message: `Server error: ${error.message}`,
+          responseTime,
+        };
+      } else if (error.message.includes("NIP-07 extension not ready")) {
+        return {
+          success: false,
+          message: "NIP-07 extension not ready",
+          responseTime,
+        };
+      } else if (error.message.includes("NetworkError") || error.message.includes("Failed to fetch")) {
+        return {
+          success: false,
+          message: "Network error - server unreachable",
+          responseTime,
+        };
+      } else {
+        return {
+          success: false,
+          message: `Connection error: ${error.message}`,
+          responseTime,
+        };
+      }
+    }
+
+    return {
+      success: false,
+      message: "Unknown error occurred",
+      responseTime,
+    };
   }
 }
 
@@ -191,13 +261,20 @@ export interface IngestEndpointUpdateRequest {
 
 export class AdminAPI {
   private eventSigner: EventSigner;
+  private baseUrl: string;
 
-  constructor(signer: EventSigner) {
+  constructor(baseUrl: string, signer: EventSigner) {
+    this.baseUrl = baseUrl;
     this.eventSigner = signer;
   }
 
+  static current(signer: EventSigner) {
+    const url = getSelectedAPIEndpoint();
+    return new AdminAPI(url.url, signer);
+  }
+
   private getBaseURL(): string {
-    return `${getAPIBaseURL()}/api/v1/admin`;
+    return `${this.baseUrl}/api/v1/admin`;
   }
 
   private async getHeaders(url: string, method: string) {
