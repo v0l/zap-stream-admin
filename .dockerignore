@@ -1,0 +1,6 @@
+.claude/
+.github/
+.vscode/
+.wrangler/
+build/
+node_modules/
