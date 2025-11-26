@@ -12,6 +12,7 @@ import {
   InputAdornment,
   Chip,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import {
   DataGrid,
@@ -26,6 +27,7 @@ import {
   AccountBalance as BalanceIcon,
   Settings as SettingsIcon,
   Visibility as InspectIcon,
+  Download as DownloadIcon,
 } from "@mui/icons-material";
 import { User } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
@@ -194,7 +196,7 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
       {
         field: "status",
         headerName: "Status",
-        width: 150,
+        width: 180,
         renderCell: (params) => (
           <Box display="flex" alignItems="center" height="100%" gap={0.5}>
             {params.row.is_admin && (
@@ -204,6 +206,7 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
                 label="Admin"
                 color="primary"
                 variant="outlined"
+                sx={{ cursor: "pointer" }}
               />
             )}
             {params.row.is_blocked && (
@@ -213,7 +216,20 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
                 label="Blocked"
                 color="error"
                 variant="outlined"
+                sx={{ cursor: "pointer" }}
               />
+            )}
+            {params.row.stream_dump_recording && (
+              <Tooltip title="Stream dump enabled">
+                <Chip
+                  size="small"
+                  icon={<DownloadIcon />}
+                  label="Dump"
+                  color="info"
+                  variant="outlined"
+                  sx={{ cursor: "pointer" }}
+                />
+              </Tooltip>
             )}
           </Box>
         ),

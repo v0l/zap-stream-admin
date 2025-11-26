@@ -152,6 +152,7 @@ export interface User {
   title: string;
   summary: string;
   stream_key?: string;
+  stream_dump_recording?: boolean;
 }
 
 export interface UsersResponse {
@@ -172,6 +173,7 @@ export interface UserUpdateRequest {
   tags?: string[];
   content_warning?: string;
   goal?: string;
+  set_stream_dump_recording?: boolean;
 }
 
 export interface Stream {
@@ -581,5 +583,21 @@ export class AdminAPI {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+  }
+
+  async getPipelineLog(streamId: string): Promise<string> {
+    const url = `${this.getBaseURL()}/pipeline-log/${streamId}`;
+    const headers = await this.getHeaders(url, "GET");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.text();
   }
 }

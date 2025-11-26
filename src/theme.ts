@@ -74,6 +74,13 @@ export const darkTheme = createTheme({
         },
       },
     },
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          fontSize: "0.875rem",
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -87,13 +94,22 @@ export const darkTheme = createTheme({
             backgroundColor: "#525252", // neutral-600 - darker on hover
           },
         },
-        outlined: {
+        outlinedPrimary: {
           borderColor: "#737373", // neutral-500
           color: "#a3a3a3", // neutral-400 - lighter text
           "&:hover": {
             borderColor: "#a3a3a3", // neutral-400
             backgroundColor: "rgba(115, 115, 115, 0.1)", // neutral-500 with opacity
             color: "#fafafa", // neutral-50 - bright on hover
+          },
+        },
+        outlinedWarning: {
+          borderColor: "#f59e0b", // amber-500
+          color: "#f59e0b", // amber-500
+          "&:hover": {
+            borderColor: "#fbbf24", // amber-400
+            backgroundColor: "rgba(245, 158, 11, 0.1)", // amber-500 with opacity
+            color: "#fbbf24", // amber-400
           },
         },
         text: {

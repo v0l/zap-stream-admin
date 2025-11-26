@@ -55,6 +55,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   // Form state
   const [isAdmin, setIsAdmin] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [recordingEnabled, setRecordingEnabled] = useState(false);
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [image, setImage] = useState("");
@@ -66,6 +67,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
     if (user) {
       setIsAdmin(user.is_admin);
       setIsBlocked(user.is_blocked);
+      setRecordingEnabled(user.stream_dump_recording || false);
       setTitle(user.title || "");
       setSummary(user.summary || "");
       setImage("");
@@ -159,6 +161,11 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
       // Blocked status
       if (isBlocked !== user.is_blocked) {
         updates.set_blocked = isBlocked;
+      }
+
+      // Recording enabled
+      if (recordingEnabled !== (user.stream_dump_recording || false)) {
+        updates.set_stream_dump_recording = recordingEnabled;
       }
 
       // Stream settings
@@ -291,6 +298,20 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                 label="Block User"
               />
             </Box>
+            <Box flex="1" minWidth="200px">
+              <Tooltip title="Saves raw stream data to disk for debugging purposes">
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={recordingEnabled}
+                      onChange={(e) => setRecordingEnabled(e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Stream Dump"
+                />
+              </Tooltip>
+            </Box>
           </Box>
         </Box>
 
@@ -351,15 +372,6 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                           </Tooltip>
                         </>
                       )}
-                      <Tooltip title="Regenerate stream key">
-                        <IconButton
-                          onClick={() => setConfirmRegenerateOpen(true)}
-                          size="small"
-                          disabled={streamKeyLoading}
-                        >
-                          <RefreshIcon />
-                        </IconButton>
-                      </Tooltip>
                     </Box>
                   </InputAdornment>
                 ),
@@ -368,19 +380,29 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
               helperText={
                 streamKey
                   ? "Click the eye icon to show/hide the full key"
-                  : "Click the refresh icon to load or generate the stream key"
+                  : "Click Load Stream Key to fetch the stream key"
               }
             />
-            {!streamKey && !streamKeyLoading && (
+            <Box display="flex" justifyContent="space-between" sx={{ mt: 1 }}>
               <Button
                 onClick={loadStreamKey}
                 variant="outlined"
                 size="small"
-                sx={{ mt: 1 }}
+                disabled={streamKeyLoading}
               >
                 Load Stream Key
               </Button>
-            )}
+              <Button
+                onClick={() => setConfirmRegenerateOpen(true)}
+                variant="outlined"
+                size="small"
+                color="warning"
+                disabled={streamKeyLoading}
+                startIcon={<RefreshIcon />}
+              >
+                Regenerate Key
+              </Button>
+            </Box>
           </Box>
         </Box>
 

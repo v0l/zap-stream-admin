@@ -1,1 +1,2 @@
 - use MUI v7 code
+- The API docs are here: https://github.com/v0l/zap-stream-core/raw/refs/heads/main/docs/ADMIN_API.md

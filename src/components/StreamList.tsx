@@ -29,13 +29,14 @@ import { StreamMetrics } from "../types/websocket";
 import { useUserProfile } from "@snort/system-react";
 import { hexToBech32 } from "@snort/shared";
 import { Link } from "react-router-dom";
+import { PipelineLogButton } from "./PipelineLogButton";
 
 interface StreamListProps {
   streams: StreamMetrics[];
   isConnected: boolean;
 }
 
-interface StreamRowProps {
+interface ActiveStreamRowProps {
   stream: StreamMetrics;
 }
 
@@ -86,7 +87,7 @@ const StreamProfileAvatar: React.FC<StreamProfileAvatarProps> = ({
   );
 };
 
-const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
+const ActiveStreamRow: React.FC<ActiveStreamRowProps> = ({ stream }) => {
   const [expanded, setExpanded] = useState(false);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
@@ -206,6 +207,7 @@ const StreamRow: React.FC<StreamRowProps> = ({ stream }) => {
           </Typography>
         </TableCell>
         <TableCell>
+          <PipelineLogButton streamId={stream.stream_id} />
           <IconButton
             size="small"
             onClick={() => setExpanded(!expanded)}
@@ -391,7 +393,7 @@ export const StreamList: React.FC<StreamListProps> = ({
             </TableHead>
             <TableBody>
               {streams.map((stream) => (
-                <StreamRow key={stream.stream_id} stream={stream} />
+                <ActiveStreamRow key={stream.stream_id} stream={stream} />
               ))}
             </TableBody>
           </Table>

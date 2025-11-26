@@ -10,6 +10,7 @@ import {
   Chip,
   IconButton,
   Alert,
+  Tooltip,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import {
@@ -18,6 +19,7 @@ import {
   AccountBalance as BalanceIcon,
   PlayArrow as PlayIcon,
   Stop as StopIcon,
+  ContentCopy as CopyIcon,
 } from "@mui/icons-material";
 import { UserProfile } from "../components/UserProfile";
 import { UserManagementModal } from "../components/UserManagementModal";
@@ -26,6 +28,7 @@ import { MilliSatsDisplay } from "../components/MilliSatsDisplay";
 import { User, Stream } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
 import { useLogin } from "../services/login";
+import { PipelineLogButton } from "../components/PipelineLogButton";
 
 export const UserInspectPage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -188,15 +191,53 @@ export const UserInspectPage: React.FC = () => {
     return `${minutes}m`;
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
   const columns: GridColDef[] = [
+    {
+      field: "id",
+      headerName: "Stream ID",
+      width: 150,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" height="100%" gap={0.5}>
+          <Typography
+            variant="body2"
+            noWrap
+            sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}
+          >
+            {params.value.slice(0, 8)}...
+          </Typography>
+          <Tooltip title="Copy Stream ID">
+            <IconButton
+              size="small"
+              onClick={() => copyToClipboard(params.value)}
+            >
+              <CopyIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
     {
       field: "title",
       headerName: "Title",
-      width: 250,
+      width: 200,
       renderCell: (params) => (
         <Box display="flex" alignItems="center" height="100%">
-          <Typography variant="body2" noWrap title={params.value}>
-            {params.value}
+          <Typography
+            variant="body2"
+            noWrap
+            title={params.value || "Untitled"}
+            sx={{ fontStyle: params.value ? "normal" : "italic" }}
+            color={params.value ? "text.primary" : "text.secondary"}
+          >
+            {params.value || "Untitled"}
           </Typography>
         </Box>
       ),
@@ -313,6 +354,16 @@ export const UserInspectPage: React.FC = () => {
               variant="outlined"
             />
           )}
+        </Box>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 80,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" height="100%">
+          <PipelineLogButton streamId={params.row.id} />
         </Box>
       ),
     },
