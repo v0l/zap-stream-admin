@@ -34,7 +34,8 @@ import { formatDistanceToNow } from "date-fns";
 import { useLogin } from "../services/login";
 import { UserProfile } from "./UserProfile";
 import { MilliSatsDisplay } from "./MilliSatsDisplay";
-import { NostrPrefix, tryParseNostrLink } from "@snort/system";
+import { tryParseNostrLink } from "@snort/system";
+import { NostrPrefix } from "@snort/shared";
 
 interface UserListProps {
   onEditUser: (user: User) => void;
