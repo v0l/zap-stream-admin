@@ -25,13 +25,13 @@ export function useWebSocket(signer: EventSigner | null) {
       const now = new Date().getTime();
       setStreams((prevStreams) =>
         prevStreams.filter((stream) => {
-          const lastUpdate = new Date(stream.last_segment_time).getTime();
+          const lastUpdate = new Date(stream.last_update).getTime();
           const age = now - lastUpdate;
-          // Remove streams that haven't updated in 30 seconds
-          return age < 30000;
+          // Remove streams that haven't updated in 120 seconds (2 minutes)
+          return age < 120000;
         }),
       );
-    }, 10000); // Check every 10 seconds
+    }, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
   }, [isConnected]);

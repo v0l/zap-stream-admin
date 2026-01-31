@@ -39,11 +39,11 @@ export interface EndpointStats {
 export interface StreamMetrics {
   stream_id: string;
   started_at: string;
-  last_segment_time: string;
+  last_update: string;
   average_fps: number;
   target_fps: number;
   frame_count: number;
-  ingress_throughput_bps: number;
+  ingress_throughput_bps?: number;
   ingress_name: string;
   input_resolution: string;
   ip_address: string;
@@ -54,6 +54,8 @@ export interface StreamMetrics {
   node_name?: string;
   pubkey?: string;
   user_id?: number;
+  urls?: string[];
+  title?: string;
 }
 
 export interface StreamMetricsMessage extends WebSocketMessage {

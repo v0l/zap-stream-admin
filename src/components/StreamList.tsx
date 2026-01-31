@@ -137,7 +137,7 @@ const ActiveStreamRow: React.FC<ActiveStreamRowProps> = ({ stream }) => {
 
   const health = getStreamHealth(stream.average_fps, stream.target_fps);
   const isLive =
-    new Date().getTime() - new Date(stream.last_segment_time).getTime() < 10000;
+    new Date().getTime() - new Date(stream.last_update).getTime() < 60000;
 
   return (
     <>
@@ -158,9 +158,29 @@ const ActiveStreamRow: React.FC<ActiveStreamRowProps> = ({ stream }) => {
               </Avatar>
             )}
             <Box ml={2}>
-              <Typography variant="body1" fontWeight="medium">
-                {stream.stream_id}
-              </Typography>
+              {stream.user_id ? (
+                <Link
+                  to={`/users/${stream.user_id}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  <Typography
+                    variant="body1"
+                    fontWeight="medium"
+                    sx={{
+                      "&:hover": {
+                        color: "primary.main",
+                        textDecoration: "underline",
+                      },
+                    }}
+                  >
+                    {stream.title || stream.stream_id}
+                  </Typography>
+                </Link>
+              ) : (
+                <Typography variant="body1" fontWeight="medium">
+                  {stream.title || stream.stream_id}
+                </Typography>
+              )}
               <Typography variant="caption" color="text.secondary">
                 {stream.ingress_name} • {stream.endpoint_name} (
                 {stream.viewers || 0} viewers)
@@ -235,10 +255,10 @@ const ActiveStreamRow: React.FC<ActiveStreamRowProps> = ({ stream }) => {
                 </Box>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Last Segment
+                    Last Update
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">
-                    {new Date(stream.last_segment_time).toLocaleTimeString()}
+                    {new Date(stream.last_update).toLocaleTimeString()}
                   </Typography>
                 </Box>
                 <Box>
