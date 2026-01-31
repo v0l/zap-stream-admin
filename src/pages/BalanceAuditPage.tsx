@@ -186,6 +186,11 @@ export const BalanceAuditPage: React.FC = () => {
                         <MilliSatsDisplay
                           milliSats={offset.current_balance}
                           variant="body2"
+                          color={
+                            offset.current_balance < 0
+                              ? "error.main"
+                              : "inherit"
+                          }
                           wholeSatsOnly={true}
                         />
                       </TableCell>
@@ -193,7 +198,11 @@ export const BalanceAuditPage: React.FC = () => {
                         <MilliSatsDisplay
                           milliSats={offset.total_payments}
                           variant="body2"
-                          color="success.main"
+                          color={
+                            offset.total_payments < 0
+                              ? "error.main"
+                              : "success.main"
+                          }
                           wholeSatsOnly={true}
                         />
                       </TableCell>
@@ -201,7 +210,11 @@ export const BalanceAuditPage: React.FC = () => {
                         <MilliSatsDisplay
                           milliSats={offset.total_stream_costs}
                           variant="body2"
-                          color="error.main"
+                          color={
+                            offset.total_stream_costs < 0
+                              ? "error.main"
+                              : "inherit"
+                          }
                           wholeSatsOnly={true}
                         />
                       </TableCell>
@@ -209,7 +222,11 @@ export const BalanceAuditPage: React.FC = () => {
                         <MilliSatsDisplay
                           milliSats={expectedBalance}
                           variant="body2"
-                          color="text.secondary"
+                          color={
+                            expectedBalance < 0
+                              ? "error.main"
+                              : "text.secondary"
+                          }
                           wholeSatsOnly={true}
                         />
                       </TableCell>

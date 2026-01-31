@@ -29,7 +29,8 @@ export const MilliSatsDisplay: React.FC<MilliSatsDisplayProps> = ({
   const sats = milliSats / 1000;
 
   // Determine sign
-  const sign = showSign ? (sats >= 0 ? "+" : "-") : "";
+  // Always show "-" for negative values, only show "+" if showSign is true
+  const sign = sats < 0 ? "-" : showSign && sats >= 0 ? "+" : "";
 
   // Format whole sats (round to nearest whole sat)
   const wholeSats = Math.round(Math.abs(sats));
@@ -55,7 +56,8 @@ export const MilliSatsDisplay: React.FC<MilliSatsDisplayProps> = ({
   }
 
   // Convert milli-sats to sats with 3 decimal places for original behavior
-  const satsString = sats.toFixed(3);
+  const absSats = Math.abs(sats);
+  const satsString = absSats.toFixed(3);
 
   // Split into whole and decimal parts
   const [wholePart, decimalPart] = satsString.split(".");
