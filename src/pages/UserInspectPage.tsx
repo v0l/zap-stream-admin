@@ -64,7 +64,7 @@ export const UserInspectPage: React.FC = () => {
           paginationModel.page,
           paginationModel.pageSize,
         );
-        setStreams(response.streams);
+        setStreams(response.data);
         setTotalStreams(response.total);
       }
     } catch (err) {

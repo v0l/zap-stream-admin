@@ -156,7 +156,7 @@ export interface User {
 }
 
 export interface UsersResponse {
-  users: User[];
+  data: User[];
   page: number;
   limit: number;
   total: number;
@@ -195,7 +195,7 @@ export interface Stream {
 }
 
 export interface StreamsResponse {
-  streams: Stream[];
+  data: Stream[];
   page: number;
   limit: number;
   total: number;
@@ -228,7 +228,7 @@ export interface AuditLogEntry {
 }
 
 export interface AuditLogResponse {
-  logs: AuditLogEntry[];
+  data: AuditLogEntry[];
   page: number;
   limit: number;
   total: number;
@@ -243,7 +243,7 @@ export interface IngestEndpoint {
 }
 
 export interface IngestEndpointsResponse {
-  endpoints: IngestEndpoint[];
+  data: IngestEndpoint[];
   page: number;
   limit: number;
   total: number;
