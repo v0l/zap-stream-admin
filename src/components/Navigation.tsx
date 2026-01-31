@@ -21,6 +21,7 @@ import {
   Storage as ServerIcon,
   Settings as SettingsIcon,
   Payment as PaymentIcon,
+  AccountBalanceWallet as BalanceIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLogin } from "../services/login";
@@ -40,7 +41,9 @@ export const Navigation: React.FC = () => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const profileRef = React.useRef<HTMLElement>(null);
 
-  const [apiEndpoints, setApiEndpoints] = React.useState(() => getAPIEndpoints());
+  const [apiEndpoints, setApiEndpoints] = React.useState(() =>
+    getAPIEndpoints(),
+  );
   const [selectedEndpoint, setSelectedEndpointState] = React.useState(() =>
     getSelectedAPIEndpoint(),
   );
@@ -68,7 +71,9 @@ export const Navigation: React.FC = () => {
   const handleEndpointChange = (endpointId: string) => {
     setSelectedAPIEndpoint(endpointId);
     const updatedEndpoints = getAPIEndpoints();
-    const newSelectedEndpoint = updatedEndpoints.find((ep) => ep.id === endpointId) || updatedEndpoints[0];
+    const newSelectedEndpoint =
+      updatedEndpoints.find((ep) => ep.id === endpointId) ||
+      updatedEndpoints[0];
 
     setApiEndpoints(updatedEndpoints);
     setSelectedEndpointState(newSelectedEndpoint);
@@ -97,6 +102,11 @@ export const Navigation: React.FC = () => {
       icon: <IngestIcon />,
     },
     { path: "/payments", label: "Payments", icon: <PaymentIcon /> },
+    {
+      path: "/balance-offsets",
+      label: "Balance Audit",
+      icon: <BalanceIcon />,
+    },
     { path: "/audit-log", label: "Audit Log", icon: <HistoryIcon /> },
   ];
 
@@ -205,7 +215,7 @@ export const Navigation: React.FC = () => {
                 "&:hover": {
                   color: "white",
                   backgroundColor: "rgba(255, 255, 255, 0.1)",
-                }
+                },
               }}
               title="Manage API Endpoints"
             >

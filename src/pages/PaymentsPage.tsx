@@ -33,7 +33,12 @@ import {
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { useLogin } from "../services/login";
-import { AdminAPI, Payment, PaymentsSummary, PaymentTypeStats } from "../services/api";
+import {
+  AdminAPI,
+  Payment,
+  PaymentsSummary,
+  PaymentTypeStats,
+} from "../services/api";
 import { MilliSatsDisplay } from "../components/MilliSatsDisplay";
 import { UserProfile } from "../components/UserProfile";
 
@@ -106,9 +111,7 @@ export const PaymentsPage: React.FC = () => {
       setPayments(response.data);
       setTotalCount(response.total);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load payments",
-      );
+      setError(err instanceof Error ? err.message : "Failed to load payments");
     } finally {
       setLoading(false);
     }
@@ -134,7 +137,14 @@ export const PaymentsPage: React.FC = () => {
   useEffect(() => {
     const { userId, paymentType, isPaid } = parseFilters();
     loadPayments(page, rowsPerPage, userId, paymentType, isPaid);
-  }, [adminAPI, page, rowsPerPage, userIdFilter, paymentTypeFilter, isPaidFilter]);
+  }, [
+    adminAPI,
+    page,
+    rowsPerPage,
+    userIdFilter,
+    paymentTypeFilter,
+    isPaidFilter,
+  ]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -200,162 +210,217 @@ export const PaymentsPage: React.FC = () => {
     );
   }
 
+  const total_topups =
+    (summary?.payments_by_type.top_up?.paid_amount ?? 0) +
+    (summary?.payments_by_type.zap?.paid_amount ?? 0) -
+    (summary?.payments_by_type.withdrawal?.paid_amount ?? 0);
+  const paid_topups_only =
+    (summary?.payments_by_type.top_up?.paid_amount ?? 0) -
+    (summary?.payments_by_type.withdrawal?.paid_amount ?? 0);
+  const topup_totals =
+    total_topups + (summary?.payments_by_type.credit?.paid_amount ?? 0);
+  const balance_diff =
+    (summary?.total_balance ?? 0) -
+    topup_totals +
+    (summary?.total_stream_costs ?? 0);
+
+  const pnl =
+    total_topups +
+    (summary?.total_stream_costs ?? 0) -
+    (summary?.payments_by_type.credit?.paid_amount ?? 0) -
+    (summary?.total_balance ?? 0);
+
+  // Determine if stream costs are consuming paid credits vs free credits
+  const stream_costs = summary?.total_stream_costs ?? 0;
+  const paid_credits_consumed = Math.min(stream_costs, paid_topups_only);
+  const free_credits_consumed = Math.max(0, stream_costs - paid_topups_only);
+  const isConsumingPaidCredits = stream_costs > paid_topups_only;
   return (
     <Container maxWidth="xl" sx={{ mt: 3 }}>
-      <Box mb={4}>
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
-          <PaymentIcon />
-          <Typography variant="h4" gutterBottom>
-            Payments
-          </Typography>
-        </Box>
-        <Typography variant="body1" color="text.secondary">
-          View payment summary and transaction history
+      {/* Payment Summary */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Payment Summary
         </Typography>
-      </Box>
-
-      {/* Summary Cards */}
-      {summaryLoading ? (
-        <Box display="flex" justifyContent="center" mb={4}>
-          <CircularProgress />
-        </Box>
-      ) : summary ? (
-        <Grid container spacing={3} mb={4}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={1}>
-                  <AccountBalance fontSize="small" color="primary" />
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Total Balance
-                  </Typography>
-                </Box>
-                <MilliSatsDisplay
-                  milliSats={summary.total_balance}
-                  variant="h5"
-                  color="primary"
-                />
-                <Typography variant="caption" color="text.secondary">
-                  Across {summary.total_users} users
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={1}>
-                  <AttachMoney fontSize="small" color="warning" />
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Total Stream Costs
-                  </Typography>
-                </Box>
-                <MilliSatsDisplay
-                  milliSats={summary.total_stream_costs}
-                  variant="h5"
-                  color="warning.main"
-                />
-                <Typography variant="caption" color="text.secondary">
-                  Accumulated costs
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={1}>
-                  {summary.balance_difference >= 0 ? (
-                    <TrendingUp fontSize="small" color="success" />
-                  ) : (
-                    <TrendingDown fontSize="small" color="error" />
-                  )}
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Balance Difference
-                  </Typography>
-                </Box>
-                <MilliSatsDisplay
-                  milliSats={summary.balance_difference}
-                  variant="h5"
-                  color={
-                    summary.balance_difference >= 0
-                      ? "success.main"
-                      : "error.main"
-                  }
-                />
-                <Typography variant="caption" color="text.secondary">
-                  {summary.balance_difference >= 0 ? "Surplus" : "Deficit"}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={1}>
-                  <PaymentIcon fontSize="small" color="info" />
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Total Payments
-                  </Typography>
-                </Box>
-                <Typography variant="h5" color="info.main">
-                  {summary.total_payments.toLocaleString()}
-                </Typography>
-                <Box display="flex" gap={1} mt={1}>
-                  <Typography variant="caption" color="success.main">
-                    Paid: <MilliSatsDisplay milliSats={summary.total_paid_amount} variant="caption" color="success.main" />
-                  </Typography>
-                </Box>
-                <Typography variant="caption" color="warning.main">
-                  Pending: <MilliSatsDisplay milliSats={summary.total_pending_amount} variant="caption" color="warning.main" />
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Payment Type Breakdown - 5 cards fit across xl screens */}
-          {Object.entries(summary.payments_by_type).map(([type, stats]) => {
-            const typeStats = stats as PaymentTypeStats;
-            return (
-              <Grid item xs={12} sm={6} md={4} lg={2.4} xl={2.4} key={type}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography
-                      variant="subtitle2"
-                      color="text.secondary"
-                      gutterBottom
+        {summaryLoading ? (
+          <Box display="flex" justifyContent="center" py={2}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : summary ? (
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Payment Type</TableCell>
+                      <TableCell align="right">Count</TableCell>
+                      <TableCell align="right">Total Amount</TableCell>
+                      <TableCell align="right">Paid Amount</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {Object.entries(summary.payments_by_type).map(
+                      ([type, stats]) => (
+                        <TableRow key={type}>
+                          <TableCell>
+                            <Chip
+                              label={formatPaymentType(type.replace("_", " "))}
+                              color={getPaymentTypeColor(type)}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="body2">
+                              {stats.count} ({stats.paid_count})
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              paid
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <MilliSatsDisplay
+                              milliSats={stats.total_amount}
+                              variant="body2"
+                              wholeSatsOnly={true}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <MilliSatsDisplay
+                              milliSats={stats.paid_amount}
+                              variant="body2"
+                              color="success.main"
+                              wholeSatsOnly={true}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    )}
+                    <TableRow
+                      sx={{
+                        borderTop: 2,
+                        borderColor: "divider",
+                        "& td": { fontWeight: "bold" },
+                      }}
                     >
-                      {formatPaymentType(type)}
-                    </Typography>
-                    <Typography variant="h6" gutterBottom>
-                      {typeStats.count.toLocaleString()}
-                    </Typography>
-                    <MilliSatsDisplay
-                      milliSats={typeStats.total_amount}
-                      variant="body2"
-                      color="text.primary"
-                    />
-                    <Box mt={1}>
-                      <Typography variant="caption" color="text.secondary">
-                        Paid: {typeStats.paid_count} (
+                      <TableCell>Totals</TableCell>
+                      <TableCell align="right">
+                        {summary.total_payments}
+                      </TableCell>
+                      <TableCell align="right">
                         <MilliSatsDisplay
-                          milliSats={typeStats.paid_amount}
-                          variant="caption"
-                          color="text.secondary"
+                          milliSats={
+                            summary.total_paid_amount +
+                            summary.total_pending_amount
+                          }
+                          variant="body2"
+                          wholeSatsOnly={true}
                         />
-                        )
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
+                      </TableCell>
+                      <TableCell align="right">
+                        <MilliSatsDisplay
+                          milliSats={summary.total_paid_amount}
+                          variant="body2"
+                          color="success.main"
+                          wholeSatsOnly={true}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12 }}>
+                  <Card variant="outlined">
+                    <CardContent sx={{ pb: 2, "&:last-child": { pb: 2 } }}>
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <AccountBalance color="primary" fontSize="small" />
+                        <Typography>Profit</Typography>
+                      </Box>
+                      <MilliSatsDisplay
+                        milliSats={pnl}
+                        variant="h6"
+                        color={pnl > 0 ? "success.main" : "error.main"}
+                        wholeSatsOnly={true}
+                        showSign={true}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Card variant="outlined">
+                    <CardContent sx={{ pb: 2, "&:last-child": { pb: 2 } }}>
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <TrendingUp color="success" fontSize="small" />
+                        <Typography>Total Topups</Typography>
+                      </Box>
+                      <MilliSatsDisplay
+                        milliSats={total_topups}
+                        variant="h6"
+                        wholeSatsOnly={true}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Card variant="outlined">
+                    <CardContent sx={{ pb: 2, "&:last-child": { pb: 2 } }}>
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <PaymentIcon color="info" fontSize="small" />
+                        <Typography>Sats Streamed</Typography>
+                      </Box>
+                      <MilliSatsDisplay
+                        milliSats={summary.total_stream_costs}
+                        variant="h6"
+                        wholeSatsOnly={true}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+                {balance_diff !== 0 && (
+                  <Grid size={{ xs: 12 }}>
+                    <Card variant="outlined">
+                      <CardContent sx={{ pb: 2, "&:last-child": { pb: 2 } }}>
+                        <Box display="flex" alignItems="center" gap={1} mb={1}>
+                          <PaymentIcon color="info" fontSize="small" />
+                          <Box>
+                            <Typography>Balance Offset</Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              Difference in the total system balances vs sum of
+                              all payment history
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box>
+                          <MilliSatsDisplay
+                            milliSats={balance_diff}
+                            variant="h6"
+                            color={
+                              balance_diff !== 0 ? "error.main" : "success.main"
+                            }
+                            wholeSatsOnly={true}
+                            showSign={true}
+                          />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                )}
               </Grid>
-            );
-          })}
-        </Grid>
-      ) : null}
+            </Grid>
+          </Grid>
+        ) : (
+          <Alert severity="error">Failed to load payment summary</Alert>
+        )}
+      </Paper>
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
@@ -363,18 +428,16 @@ export const PaymentsPage: React.FC = () => {
           Filters
         </Typography>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <TextField
               fullWidth
               label="User ID"
               value={userIdFilter}
               onChange={(e) => setUserIdFilter(e.target.value)}
-              type="number"
-              size="small"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small">
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <FormControl fullWidth>
               <InputLabel>Payment Type</InputLabel>
               <Select
                 value={paymentTypeFilter}
@@ -390,8 +453,8 @@ export const PaymentsPage: React.FC = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small">
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <FormControl fullWidth>
               <InputLabel>Payment Status</InputLabel>
               <Select
                 value={isPaidFilter}
@@ -404,7 +467,7 @@ export const PaymentsPage: React.FC = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Box display="flex" gap={1}>
               <Button
                 variant="contained"
@@ -413,11 +476,7 @@ export const PaymentsPage: React.FC = () => {
               >
                 Apply
               </Button>
-              <Button
-                variant="outlined"
-                onClick={handleClearFilters}
-                fullWidth
-              >
+              <Button variant="outlined" onClick={handleClearFilters} fullWidth>
                 Clear
               </Button>
             </Box>
@@ -433,7 +492,7 @@ export const PaymentsPage: React.FC = () => {
 
       {/* Payments Table */}
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
+        <TableContainer>
           <Table stickyHeader>
             <TableHead>
               <TableRow>

@@ -65,7 +65,10 @@ export function removeAPIEndpoint(endpointId: string): void {
   }
 }
 
-export async function testAPIEndpointConnectivity(url: string, signer: EventSigner): Promise<{
+export async function testAPIEndpointConnectivity(
+  url: string,
+  signer: EventSigner,
+): Promise<{
   success: boolean;
   message: string;
   responseTime?: number;
@@ -114,7 +117,10 @@ export async function testAPIEndpointConnectivity(url: string, signer: EventSign
           message: "NIP-07 extension not ready",
           responseTime,
         };
-      } else if (error.message.includes("NetworkError") || error.message.includes("Failed to fetch")) {
+      } else if (
+        error.message.includes("NetworkError") ||
+        error.message.includes("Failed to fetch")
+      ) {
         return {
           success: false,
           message: "Network error - server unreachable",
@@ -139,6 +145,18 @@ export async function testAPIEndpointConnectivity(url: string, signer: EventSign
 
 function getAPIBaseURL(): string {
   return getSelectedAPIEndpoint().url;
+}
+
+export interface APIError {
+  error: string;
+}
+
+export function handleAPIResponse<T>(response: T): T {
+  if (response && typeof response === "object" && "error" in response) {
+    const errorResponse = response as APIError;
+    throw new Error(errorResponse.error);
+  }
+  return response;
 }
 
 export interface User {
@@ -304,6 +322,22 @@ export interface PaymentsSummary {
   };
 }
 
+export interface BalanceOffset {
+  user_id: number;
+  pubkey: string;
+  current_balance: number;
+  total_payments: number;
+  total_stream_costs: number;
+  balance_offset: number;
+}
+
+export interface BalanceOffsetsResponse {
+  data: BalanceOffset[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
 export class AdminAPI {
   private eventSigner: EventSigner;
   private baseUrl: string;
@@ -382,7 +416,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<UsersResponse>(data);
   }
 
   async updateUser(userId: number, updates: UserUpdateRequest): Promise<void> {
@@ -398,6 +433,9 @@ export class AdminAPI {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    handleAPIResponse(data);
   }
 
   async grantAdmin(userId: number): Promise<void> {
@@ -438,7 +476,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<User>(data);
   }
 
   async getUserStreams(
@@ -458,7 +497,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<StreamsResponse>(data);
   }
 
   async getUserHistory(
@@ -478,7 +518,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<HistoryResponse>(data);
   }
 
   async regenerateStreamKey(userId: number): Promise<{ stream_key: string }> {
@@ -494,7 +535,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<{ stream_key: string }>(data);
   }
 
   async getStreamKey(userId: number): Promise<{ stream_key: string }> {
@@ -510,7 +552,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<{ stream_key: string }>(data);
   }
 
   async getAuditLogs(page = 0, limit = 50): Promise<AuditLogResponse> {
@@ -531,7 +574,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<AuditLogResponse>(data);
   }
 
   // Ingest Endpoint Management
@@ -556,7 +600,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<IngestEndpointsResponse>(data);
   }
 
   async getIngestEndpoint(id: number): Promise<IngestEndpoint> {
@@ -572,7 +617,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<IngestEndpoint>(data);
   }
 
   async createIngestEndpoint(
@@ -591,7 +637,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<IngestEndpoint>(data);
   }
 
   async updateIngestEndpoint(
@@ -611,7 +658,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<IngestEndpoint>(data);
   }
 
   async deleteIngestEndpoint(id: number): Promise<void> {
@@ -626,6 +674,9 @@ export class AdminAPI {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    handleAPIResponse(data);
   }
 
   async getPipelineLog(streamId: string): Promise<string> {
@@ -641,7 +692,16 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.text();
+    const text = await response.text();
+    // Check if response is JSON error format
+    try {
+      const data = JSON.parse(text);
+      handleAPIResponse(data);
+      return text; // If no error, return original text
+    } catch {
+      // Not JSON, return as is
+      return text;
+    }
   }
 
   // Payment Management
@@ -679,7 +739,8 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<PaymentsResponse>(data);
   }
 
   async getPaymentsSummary(): Promise<PaymentsSummary> {
@@ -695,6 +756,32 @@ export class AdminAPI {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return handleAPIResponse<PaymentsSummary>(data);
+  }
+
+  async getBalanceOffsets(
+    page = 0,
+    limit = 50,
+  ): Promise<BalanceOffsetsResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    const url = `${this.getBaseURL()}/balance-offsets?${params}`;
+    const headers = await this.getHeaders(url, "GET");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return handleAPIResponse<BalanceOffsetsResponse>(data);
   }
 }

@@ -13,6 +13,7 @@ import { UserInspectPage } from "./pages/UserInspectPage";
 import { IngestEndpointsPage } from "./pages/IngestEndpointsPage";
 import { AuditLogPage } from "./pages/AuditLogPage";
 import { PaymentsPage } from "./pages/PaymentsPage";
+import { BalanceAuditPage } from "./pages/BalanceAuditPage";
 
 // Create Nostr system instance
 const system = new NostrSystem({});
@@ -35,6 +36,7 @@ const AdminDashboard: React.FC = () => {
         <Route path="/ingest-endpoints" element={<IngestEndpointsPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/payments" element={<PaymentsPage />} />
+        <Route path="/balance-offsets" element={<BalanceAuditPage />} />
       </Routes>
     </Box>
   );

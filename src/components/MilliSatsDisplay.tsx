@@ -8,6 +8,10 @@ interface MilliSatsDisplayProps {
   color?: string;
   /** Typography variant for the main amount. Defaults to 'body2' */
   variant?: "body1" | "body2" | "h4" | "h6" | "subtitle2";
+  /** Show only whole sats (no decimal part). Defaults to false */
+  wholeSatsOnly?: boolean;
+  /** Always show sign (+/-). Defaults to false */
+  showSign?: boolean;
 }
 
 /**
@@ -18,9 +22,39 @@ export const MilliSatsDisplay: React.FC<MilliSatsDisplayProps> = ({
   milliSats,
   color = "inherit",
   variant = "body2",
+  wholeSatsOnly = false,
+  showSign = false,
 }) => {
-  // Convert milli-sats to sats with 3 decimal places
+  // Convert milli-sats to sats
   const sats = milliSats / 1000;
+
+  // Determine sign
+  const sign = showSign ? (sats >= 0 ? "+" : "-") : "";
+
+  // Format whole sats (round to nearest whole sat)
+  const wholeSats = Math.round(Math.abs(sats));
+  const formattedWhole = wholeSats.toLocaleString();
+
+  if (wholeSatsOnly) {
+    return (
+      <Box component="span" display="inline-flex" alignItems="baseline">
+        <Typography component="span" variant={variant} color={color}>
+          {sign}
+          {formattedWhole}
+        </Typography>
+        <Typography
+          component="span"
+          variant={variant}
+          color={color}
+          sx={{ ml: 0.5 }}
+        >
+          sats
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Convert milli-sats to sats with 3 decimal places for original behavior
   const satsString = sats.toFixed(3);
 
   // Split into whole and decimal parts
@@ -29,6 +63,7 @@ export const MilliSatsDisplay: React.FC<MilliSatsDisplayProps> = ({
   return (
     <Box component="span" display="inline-flex" alignItems="baseline">
       <Typography component="span" variant={variant} color={color}>
+        {sign}
         {parseInt(wholePart).toLocaleString()}
       </Typography>
       <Typography
