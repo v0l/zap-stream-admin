@@ -186,7 +186,7 @@ export const AuditLogPage: React.FC = () => {
       setLoading(true);
       setError("");
       const response = await adminAPI.getAuditLogs(pageNum, limit);
-      setAuditLogs(response.logs);
+      setAuditLogs(response.data);
       setTotalCount(response.total);
     } catch (err) {
       setError(

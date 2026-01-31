@@ -58,7 +58,7 @@ export const IngestEndpointsPage: React.FC = () => {
         page,
         limit,
       );
-      setEndpoints(response.endpoints);
+      setEndpoints(response.data);
       setTotal(response.total);
     } catch (err) {
       console.error("Error loading ingest endpoints:", err);

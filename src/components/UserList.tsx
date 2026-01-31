@@ -100,7 +100,7 @@ export const UserList = forwardRef<UserListRef, UserListProps>(
           paginationModel.pageSize,
           searchQuery || undefined,
         );
-        setUsers(response.users);
+        setUsers(response.data);
         setTotalRows(response.total);
       } catch (error) {
         console.error("Failed to load users:", error);
