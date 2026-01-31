@@ -261,6 +261,49 @@ export interface IngestEndpointUpdateRequest {
   capabilities?: string[];
 }
 
+export interface Payment {
+  payment_hash: string;
+  user_id: number;
+  user_pubkey: string | null;
+  amount: number; // in millisatoshis
+  is_paid: boolean;
+  payment_type: string;
+  fee: number;
+  created: number;
+  expires: number;
+}
+
+export interface PaymentsResponse {
+  data: Payment[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export interface PaymentTypeStats {
+  count: number;
+  total_amount: number;
+  paid_count: number;
+  paid_amount: number;
+}
+
+export interface PaymentsSummary {
+  total_users: number;
+  total_balance: number;
+  total_stream_costs: number;
+  balance_difference: number;
+  total_payments: number;
+  total_paid_amount: number;
+  total_pending_amount: number;
+  payments_by_type: {
+    top_up?: PaymentTypeStats;
+    zap?: PaymentTypeStats;
+    credit?: PaymentTypeStats;
+    withdrawal?: PaymentTypeStats;
+    admission_fee?: PaymentTypeStats;
+  };
+}
+
 export class AdminAPI {
   private eventSigner: EventSigner;
   private baseUrl: string;
@@ -599,5 +642,59 @@ export class AdminAPI {
     }
 
     return await response.text();
+  }
+
+  // Payment Management
+  async getPayments(
+    page = 0,
+    limit = 50,
+    userId?: number,
+    paymentType?: string,
+    isPaid?: boolean,
+  ): Promise<PaymentsResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (userId !== undefined) {
+      params.append("user_id", userId.toString());
+    }
+    if (paymentType) {
+      params.append("payment_type", paymentType);
+    }
+    if (isPaid !== undefined) {
+      params.append("is_paid", isPaid.toString());
+    }
+
+    const url = `${this.getBaseURL()}/payments?${params}`;
+    const headers = await this.getHeaders(url, "GET");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async getPaymentsSummary(): Promise<PaymentsSummary> {
+    const url = `${this.getBaseURL()}/payments/summary`;
+    const headers = await this.getHeaders(url, "GET");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
   }
 }

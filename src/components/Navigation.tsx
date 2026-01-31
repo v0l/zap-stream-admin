@@ -20,6 +20,7 @@ import {
   Cable as IngestIcon,
   Storage as ServerIcon,
   Settings as SettingsIcon,
+  Payment as PaymentIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLogin } from "../services/login";
@@ -95,6 +96,7 @@ export const Navigation: React.FC = () => {
       label: "Ingest Endpoints",
       icon: <IngestIcon />,
     },
+    { path: "/payments", label: "Payments", icon: <PaymentIcon /> },
     { path: "/audit-log", label: "Audit Log", icon: <HistoryIcon /> },
   ];
 
