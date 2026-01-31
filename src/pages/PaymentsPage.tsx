@@ -114,11 +114,8 @@ export const PaymentsPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    loadSummary();
-  }, [adminAPI]);
-
-  useEffect(() => {
+  // Helper function to parse filters
+  const parseFilters = () => {
     const userId = userIdFilter ? parseInt(userIdFilter) : undefined;
     const paymentType = paymentTypeFilter || undefined;
     const isPaid =
@@ -127,7 +124,15 @@ export const PaymentsPage: React.FC = () => {
         : isPaidFilter === "false"
           ? false
           : undefined;
+    return { userId, paymentType, isPaid };
+  };
 
+  useEffect(() => {
+    loadSummary();
+  }, [adminAPI]);
+
+  useEffect(() => {
+    const { userId, paymentType, isPaid } = parseFilters();
     loadPayments(page, rowsPerPage, userId, paymentType, isPaid);
   }, [adminAPI, page, rowsPerPage, userIdFilter, paymentTypeFilter, isPaidFilter]);
 
@@ -144,15 +149,7 @@ export const PaymentsPage: React.FC = () => {
 
   const handleApplyFilters = () => {
     setPage(0);
-    const userId = userIdFilter ? parseInt(userIdFilter) : undefined;
-    const paymentType = paymentTypeFilter || undefined;
-    const isPaid =
-      isPaidFilter === "true"
-        ? true
-        : isPaidFilter === "false"
-          ? false
-          : undefined;
-
+    const { userId, paymentType, isPaid } = parseFilters();
     loadPayments(0, rowsPerPage, userId, paymentType, isPaid);
   };
 
@@ -173,7 +170,9 @@ export const PaymentsPage: React.FC = () => {
       .join(" ");
   };
 
-  const getPaymentTypeColor = (type: string) => {
+  const getPaymentTypeColor = (
+    type: string,
+  ): "success" | "info" | "primary" | "error" | "warning" | "default" => {
     const normalized = type.toLowerCase();
     switch (normalized) {
       case "topup":
@@ -317,11 +316,11 @@ export const PaymentsPage: React.FC = () => {
             </Card>
           </Grid>
 
-          {/* Payment Type Breakdown */}
+          {/* Payment Type Breakdown - 5 cards fit across xl screens */}
           {Object.entries(summary.payments_by_type).map(([type, stats]) => {
             const typeStats = stats as PaymentTypeStats;
             return (
-              <Grid item xs={12} sm={6} md={2.4} key={type}>
+              <Grid item xs={12} sm={6} md={4} lg={2.4} xl={2.4} key={type}>
                 <Card variant="outlined">
                   <CardContent>
                     <Typography
@@ -493,7 +492,7 @@ export const PaymentsPage: React.FC = () => {
                     <TableCell>
                       <Chip
                         label={formatPaymentType(payment.payment_type)}
-                        color={getPaymentTypeColor(payment.payment_type) as any}
+                        color={getPaymentTypeColor(payment.payment_type)}
                         size="small"
                       />
                     </TableCell>
