@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -18,7 +18,7 @@ import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import {
   AccountBalance as BalanceIcon,
   History as HistoryIcon,
-  Add as AddIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { User, HistoryItem } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
@@ -46,6 +46,13 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
 
   const [creditAmount, setCreditAmount] = useState("");
   const [creditMemo, setCreditMemo] = useState("");
+
+  // Validate credit amount
+  const isValidAmount = useMemo(() => {
+    if (!creditAmount) return false;
+    const amount = parseFloat(creditAmount);
+    return !isNaN(amount) && amount !== 0;
+  }, [creditAmount]);
 
   // History state
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -95,16 +102,17 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
   }, [activeTab, paginationModel]);
 
   const handleAddCredits = async () => {
-    if (!user || !creditAmount || parseFloat(creditAmount) <= 0) return;
+    if (!user || !isValidAmount) return;
 
+    const amount = parseFloat(creditAmount);
     setLoading(true);
     setError(null);
 
     try {
       const adminAPI = await getAdminAPI();
       if (adminAPI) {
-        const amount = Math.floor(parseFloat(creditAmount) * 1000); // Convert sats to msats
-        await adminAPI.addCredits(user.id, amount, creditMemo || undefined);
+        const msats = Math.floor(amount * 1000); // Convert sats to msats
+        await adminAPI.addCredits(user.id, msats, creditMemo || undefined);
         onUpdate();
         // Refresh history if we're on history tab
         if (activeTab === 1) {
@@ -197,7 +205,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
             value={activeTab}
             onChange={(_, newValue) => setActiveTab(newValue)}
           >
-            <Tab icon={<AddIcon />} label="Add Credits" />
+            <Tab icon={<EditIcon />} label="Adjust Credits" />
             <Tab icon={<HistoryIcon />} label="Balance History" />
           </Tabs>
         </Box>
@@ -214,7 +222,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
         {activeTab === 0 && (
           <Box>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Add Credits
+              Adjust Credits
             </Typography>
             <Box display="flex" flexDirection="column" gap={2}>
               <TextField
@@ -230,7 +238,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
                     ),
                   },
                 }}
-                helperText="Amount in satoshis to add to user's balance"
+                helperText="Amount in satoshis to add (positive) or remove (negative) from user's balance"
               />
               <TextField
                 fullWidth
@@ -278,9 +286,9 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
           <Button
             onClick={handleAddCredits}
             variant="contained"
-            disabled={loading || !creditAmount || parseFloat(creditAmount) <= 0}
+            disabled={loading || !isValidAmount}
           >
-            {loading ? "Adding Credits..." : "Add Credits"}
+            {loading ? "Processing..." : "Apply"}
           </Button>
         )}
       </DialogActions>
