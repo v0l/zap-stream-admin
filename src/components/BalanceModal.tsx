@@ -95,7 +95,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
   }, [activeTab, paginationModel]);
 
   const handleAddCredits = async () => {
-    if (!user || !creditAmount || parseFloat(creditAmount) <= 0) return;
+    if (!user || !creditAmount || parseFloat(creditAmount) === 0) return;
 
     setLoading(true);
     setError(null);
@@ -197,7 +197,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
             value={activeTab}
             onChange={(_, newValue) => setActiveTab(newValue)}
           >
-            <Tab icon={<AddIcon />} label="Add Credits" />
+            <Tab icon={<AddIcon />} label="Adjust Credits" />
             <Tab icon={<HistoryIcon />} label="Balance History" />
           </Tabs>
         </Box>
@@ -214,7 +214,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
         {activeTab === 0 && (
           <Box>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Add Credits
+              Adjust Credits
             </Typography>
             <Box display="flex" flexDirection="column" gap={2}>
               <TextField
@@ -230,7 +230,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
                     ),
                   },
                 }}
-                helperText="Amount in satoshis to add to user's balance"
+                helperText="Amount in satoshis to add (positive) or remove (negative) from user's balance"
               />
               <TextField
                 fullWidth
@@ -278,9 +278,9 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
           <Button
             onClick={handleAddCredits}
             variant="contained"
-            disabled={loading || !creditAmount || parseFloat(creditAmount) <= 0}
+            disabled={loading || !creditAmount || parseFloat(creditAmount) === 0}
           >
-            {loading ? "Adding Credits..." : "Add Credits"}
+            {loading ? "Processing..." : "Apply"}
           </Button>
         )}
       </DialogActions>
