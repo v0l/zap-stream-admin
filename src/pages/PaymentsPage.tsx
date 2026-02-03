@@ -75,6 +75,9 @@ export const PaymentsPage: React.FC = () => {
     return signer ? AdminAPI.current(signer) : null;
   }, [signer]);
 
+  // Current timestamp in seconds, recalculated when payments change
+  const currentTimestamp = React.useMemo(() => Date.now() / 1000, [payments]);
+
   const loadSummary = async () => {
     if (!adminAPI) return;
 
@@ -203,8 +206,7 @@ export const PaymentsPage: React.FC = () => {
   };
 
   const isPaymentExpired = (payment: Payment): boolean => {
-    const now = Date.now() / 1000; // Convert to Unix timestamp in seconds
-    return !payment.is_paid && payment.expires < now;
+    return !payment.is_paid && payment.expires < currentTimestamp;
   };
 
   const getPaymentStatus = (payment: Payment): string => {
