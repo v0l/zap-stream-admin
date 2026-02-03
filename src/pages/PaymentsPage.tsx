@@ -23,6 +23,8 @@ import {
   MenuItem,
   TextField,
   Button,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import {
   Payment as PaymentIcon,
@@ -30,6 +32,7 @@ import {
   TrendingDown,
   AccountBalance,
   AttachMoney,
+  ContentCopy as CopyIcon,
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { useLogin } from "../services/login";
@@ -65,6 +68,7 @@ export const PaymentsPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [totalCount, setTotalCount] = useState(0);
+  const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
   // Filters
   const [userIdFilter, setUserIdFilter] = useState<string>("");
@@ -172,6 +176,16 @@ export const PaymentsPage: React.FC = () => {
     setIsPaidFilter("");
     setPage(0);
     loadPayments(0, rowsPerPage);
+  };
+
+  const copyPaymentHash = async (hash: string) => {
+    try {
+      await navigator.clipboard.writeText(hash);
+      setCopiedHash(hash);
+      setTimeout(() => setCopiedHash(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy payment hash:", err);
+    }
   };
 
   const formatPaymentType = (type: string) => {
@@ -548,12 +562,35 @@ export const PaymentsPage: React.FC = () => {
                 payments.map((payment) => (
                   <TableRow key={payment.payment_hash} hover>
                     <TableCell>
-                      <Typography
-                        variant="body2"
-                        sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}
-                      >
-                        {payment.payment_hash.slice(0, 16)}...
-                      </Typography>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}
+                        >
+                          {payment.payment_hash.slice(0, 16)}...
+                        </Typography>
+                        <Tooltip
+                          title={
+                            copiedHash === payment.payment_hash
+                              ? "Copied!"
+                              : "Copy payment hash"
+                          }
+                        >
+                          <IconButton
+                            onClick={() =>
+                              copyPaymentHash(payment.payment_hash)
+                            }
+                            size="small"
+                            color={
+                              copiedHash === payment.payment_hash
+                                ? "success"
+                                : "default"
+                            }
+                          >
+                            <CopyIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                     <TableCell>
                       {payment.user_pubkey ? (
