@@ -18,7 +18,7 @@ import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import {
   AccountBalance as BalanceIcon,
   History as HistoryIcon,
-  Add as AddIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { User, HistoryItem } from "../services/api";
 import { formatDistanceToNow } from "date-fns";
@@ -197,7 +197,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
             value={activeTab}
             onChange={(_, newValue) => setActiveTab(newValue)}
           >
-            <Tab icon={<AddIcon />} label="Adjust Credits" />
+            <Tab icon={<EditIcon />} label="Adjust Credits" />
             <Tab icon={<HistoryIcon />} label="Balance History" />
           </Tabs>
         </Box>
