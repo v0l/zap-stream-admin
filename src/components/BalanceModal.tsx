@@ -147,17 +147,20 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
       field: "amount",
       headerName: "Amount",
       width: 150,
-      renderCell: (params) => (
-        <Box display="flex" alignItems="center" height="100%">
-          <Typography
-            variant="body2"
-            color={params.row.type === 0 ? "success.main" : "error.main"}
-          >
-            {params.row.type === 0 ? "+" : "-"}
-            {params.value.toLocaleString()} sats
-          </Typography>
-        </Box>
-      ),
+      renderCell: (params) => {
+        const isDeduction = params.row.type !== 0 || params.value < 0;
+        return (
+          <Box display="flex" alignItems="center" height="100%">
+            <Typography
+              variant="body2"
+              color={!isDeduction ? "success.main" : "error.main"}
+            >
+              {isDeduction ? "-" : "+"}
+              {Math.abs(params.value).toLocaleString()} sats
+            </Typography>
+          </Box>
+        )
+      },
     },
     {
       field: "desc",

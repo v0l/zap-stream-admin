@@ -422,10 +422,10 @@ export class AdminAPI {
 
   async updateUser(userId: number, updates: UserUpdateRequest): Promise<void> {
     const url = `${this.getBaseURL()}/users/${userId}`;
-    const headers = await this.getHeaders(url, "POST");
+    const headers = await this.getHeaders(url, "PATCH");
 
     const response = await fetch(url, {
-      method: "POST",
+      method: "PATCH",
       headers,
       body: JSON.stringify(updates),
     });
