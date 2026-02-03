@@ -95,7 +95,8 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
   }, [activeTab, paginationModel]);
 
   const handleAddCredits = async () => {
-    if (!user || !creditAmount || parseFloat(creditAmount) === 0) return;
+    const amount = parseFloat(creditAmount);
+    if (!user || !creditAmount || isNaN(amount) || amount === 0) return;
 
     setLoading(true);
     setError(null);
@@ -103,8 +104,8 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
     try {
       const adminAPI = await getAdminAPI();
       if (adminAPI) {
-        const amount = Math.floor(parseFloat(creditAmount) * 1000); // Convert sats to msats
-        await adminAPI.addCredits(user.id, amount, creditMemo || undefined);
+        const msats = Math.floor(amount * 1000); // Convert sats to msats
+        await adminAPI.addCredits(user.id, msats, creditMemo || undefined);
         onUpdate();
         // Refresh history if we're on history tab
         if (activeTab === 1) {
@@ -278,7 +279,12 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
           <Button
             onClick={handleAddCredits}
             variant="contained"
-            disabled={loading || !creditAmount || parseFloat(creditAmount) === 0}
+            disabled={
+              loading ||
+              !creditAmount ||
+              isNaN(parseFloat(creditAmount)) ||
+              parseFloat(creditAmount) === 0
+            }
           >
             {loading ? "Processing..." : "Apply"}
           </Button>
