@@ -75,6 +75,9 @@ export const PaymentsPage: React.FC = () => {
     return signer ? AdminAPI.current(signer) : null;
   }, [signer]);
 
+  // Current timestamp in seconds, recalculated when payments change
+  const currentTimestamp = React.useMemo(() => Date.now() / 1000, [payments]);
+
   const loadSummary = async () => {
     if (!adminAPI) return;
 
@@ -200,6 +203,26 @@ export const PaymentsPage: React.FC = () => {
       default:
         return "default";
     }
+  };
+
+  const isPaymentExpired = (payment: Payment): boolean => {
+    return !payment.is_paid && payment.expires < currentTimestamp;
+  };
+
+  const getPaymentStatus = (payment: Payment): string => {
+    if (payment.is_paid) {
+      return "Paid";
+    }
+    return isPaymentExpired(payment) ? "Expired" : "Pending";
+  };
+
+  const getPaymentStatusColor = (
+    payment: Payment,
+  ): "success" | "error" | "warning" => {
+    if (payment.is_paid) {
+      return "success";
+    }
+    return isPaymentExpired(payment) ? "error" : "warning";
   };
 
   if (!signer) {
@@ -573,8 +596,8 @@ export const PaymentsPage: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={payment.is_paid ? "Paid" : "Pending"}
-                        color={payment.is_paid ? "success" : "warning"}
+                        label={getPaymentStatus(payment)}
+                        color={getPaymentStatusColor(payment)}
                         size="small"
                       />
                     </TableCell>
