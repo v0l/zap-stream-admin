@@ -202,6 +202,27 @@ export const PaymentsPage: React.FC = () => {
     }
   };
 
+  const isPaymentExpired = (payment: Payment): boolean => {
+    const now = Date.now() / 1000; // Convert to Unix timestamp in seconds
+    return !payment.is_paid && payment.expires < now;
+  };
+
+  const getPaymentStatus = (payment: Payment): string => {
+    if (payment.is_paid) {
+      return "Paid";
+    }
+    return isPaymentExpired(payment) ? "Expired" : "Pending";
+  };
+
+  const getPaymentStatusColor = (
+    payment: Payment,
+  ): "success" | "error" | "warning" => {
+    if (payment.is_paid) {
+      return "success";
+    }
+    return isPaymentExpired(payment) ? "error" : "warning";
+  };
+
   if (!signer) {
     return (
       <Container maxWidth="xl" sx={{ mt: 3 }}>
@@ -573,8 +594,8 @@ export const PaymentsPage: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={payment.is_paid ? "Paid" : "Pending"}
-                        color={payment.is_paid ? "success" : "warning"}
+                        label={getPaymentStatus(payment)}
+                        color={getPaymentStatusColor(payment)}
                         size="small"
                       />
                     </TableCell>
