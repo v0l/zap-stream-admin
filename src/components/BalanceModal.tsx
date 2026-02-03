@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -46,6 +46,13 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
 
   const [creditAmount, setCreditAmount] = useState("");
   const [creditMemo, setCreditMemo] = useState("");
+
+  // Validate credit amount
+  const isValidAmount = useMemo(() => {
+    if (!creditAmount) return false;
+    const amount = parseFloat(creditAmount);
+    return !isNaN(amount) && amount !== 0;
+  }, [creditAmount]);
 
   // History state
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -95,9 +102,9 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
   }, [activeTab, paginationModel]);
 
   const handleAddCredits = async () => {
-    const amount = parseFloat(creditAmount);
-    if (!user || !creditAmount || isNaN(amount) || amount === 0) return;
+    if (!user || !isValidAmount) return;
 
+    const amount = parseFloat(creditAmount);
     setLoading(true);
     setError(null);
 
@@ -279,12 +286,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
           <Button
             onClick={handleAddCredits}
             variant="contained"
-            disabled={
-              loading ||
-              !creditAmount ||
-              isNaN(parseFloat(creditAmount)) ||
-              parseFloat(creditAmount) === 0
-            }
+            disabled={loading || !isValidAmount}
           >
             {loading ? "Processing..." : "Apply"}
           </Button>
